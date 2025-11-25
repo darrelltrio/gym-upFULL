@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Session - Gym & Up</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/workout.css">
+</head>
+<body>
+
+    <header class="workout-header">
+        <button id="discard-btn" class="discard-btn">×</button>
+        <div class="duration-timer">00:00:00</div>
+        <button id="finish-btn" class="finish-btn">✓</button>
+    </header>
+
+    <main class="workout-content">
+        </main>
+    
+    <footer class="workout-footer">
+        <button class="add-exercise-btn">+ Exercise</button>
+    </footer>
+
+    <div id="confirm-modal" class="modal-wrapper">
+        <div class="modal-content confirm-box">
+            <h4 id="modal-title"></h4> 
+            <p id="modal-text"></p>   
+            <div class="modal-actions">
+                <button id="confirm-no-btn" class="btn-secondary">No</button>
+                <button id="confirm-yes-btn" class="btn-primary">Yes</button>
+            </div>
+            
+            <div id="modal-alert-actions" class="modal-actions" style="display: none;">
+                <button id="alert-ok-btn" class="btn-primary" style="width: 100%;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="completed-screen" class="completed-wrapper">
+        <div class="completed-content">
+            <h1>Workout Completed!</h1>
+            <div class="checkmark-circle">✓</div>
+            <p>Great job! Your log has been saved.</p>
+            <a href="index.html" class="back-to-home-btn">Back to Home</a>
+        </div>
+    </div>
+    
+    <div id="catalog-overlay" class="page-overlay">
+        <header class="catalog-header">
+            <button id="close-catalog-btn" class="discard-btn">×</button>
+            <h2>Choose Exercises</h2>
+            <button id="open-create-modal-btn" class="text-gold font-bold text-sm">+ New</button>
+        </header>
+        
+        <div class="catalog-controls">
+            <input type="text" id="search-bar" placeholder="Search exercises...">
+            
+            <div id="filter-container">
+                <button class="filter-btn active" data-group="all">All</button>
+                <button class="filter-btn" data-group="Chest">Chest</button>
+                <button class="filter-btn" data-group="Back">Back</button>
+                <button class="filter-btn" data-group="Legs">Legs</button>
+                <button class="filter-btn" data-group="Shoulders">Shoulders</button>
+                <button class="filter-btn" data-group="Arms">Arms</button>
+            </div>
+        </div>
+
+        <div id="catalog-list" class="catalog-list">
+            </div>
+        
+        <button id="add-selected-btn" class="fab" style="display: none;">+</button>
+    </div>
+
+    <div id="create-exercise-modal" class="modal-wrapper">
+        <div class="modal-content confirm-box" style="text-align: left;">
+            <h4 style="margin-bottom: 20px; color: var(--primary-gold);">Create New Exercise</h4>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: #a0a0a0; font-size: 0.9rem; display:block; margin-bottom:5px;">Exercise Name</label>
+                <input type="text" id="new-exercise-name" class="modal-input" placeholder="e.g., Bulgarian Split Squat">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: #a0a0a0; font-size: 0.9rem; display:block; margin-bottom:5px;">Muscle Group</label>
+                <select id="new-exercise-muscle" class="modal-input">
+                    <option value="Chest">Chest</option>
+                    <option value="Back">Back</option>
+                    <option value="Legs">Legs</option>
+                    <option value="Shoulders">Shoulders</option>
+                    <option value="Arms">Arms</option>
+                    <option value="Core">Core</option>
+                    <option value="Cardio">Cardio</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: #a0a0a0; font-size: 0.9rem; display:block; margin-bottom:5px;">Equipment</label>
+                <select id="new-exercise-equipment" class="modal-input">
+                    <option value="Barbell">Barbell</option>
+                    <option value="Dumbbell">Dumbbell</option>
+                    <option value="Machine">Machine</option>
+                    <option value="Cable">Cable</option>
+                    <option value="Bodyweight">Bodyweight</option>
+                </select>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button id="cancel-create-btn" class="btn-secondary">Cancel</button>
+                <button id="save-exercise-btn" class="btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/workout.js"></script>
+</body>
+</html>

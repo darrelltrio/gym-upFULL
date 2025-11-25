@@ -1,0 +1,610 @@
+/* Global Styles & Variables */
+:root {
+    --primary-gold: #FFB703;
+    --text-white: #FFFFFF;
+    --background-dark: #121212;
+    --card-background: #1E1E1E;
+}
+
+* {
+    margin: 2px; /* Mengembalikan margin ke 0 */
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-dark);
+    color: var(--text-white);
+    padding: 20px;
+}
+
+/* Workout Header */
+.workout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* Mengganti nama kelas dan menambahkan style untuk tombol discard */
+.discard-btn, .finish-btn {
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    color: var(--text-white);
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0 10px;
+}
+.finish-btn { color: var(--primary-gold); font-weight: bold; }
+
+.discard-btn:hover {
+    color: #FF5733; /* Warna merah/oranye saat hover */
+}
+/* Exercise Card */
+.exercise-card {
+    background-color: var(--card-background);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.options-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+
+/*Set Log Table */
+.set-log { margin-top: 20px; }
+.log-header {
+    display: flex;
+    justify-content: space-around; /* Agar lebih seimbang */
+    color: #a0a0a0;
+    font-size: 0.8rem;
+    padding: 0 10px;
+    margin-bottom: 10px;
+}
+.log-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.set-number { font-weight: bold; width: 30px; text-align: center; }
+.log-row input {
+    width: 100%;
+    padding: 12px;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+}
+.check-btn {
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+    border: none;
+    border-radius: 8px;
+    width: 45px;
+    height: 45px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-set-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #333;
+    border: none;
+    color: var(--primary-gold);
+    font-weight: bold;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+/* Footer */
+.workout-footer {
+    text-align: center;
+    margin-top: 20px;
+}
+.add-exercise-btn {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px;
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+    font-weight: bold;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* --- Dropdown Exercise --- */
+.exercise-select {
+    width: 80%;
+    background-color: transparent;
+    border: none;
+    color: var(--text-white);
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.exercise-select option {
+    background-color: var(--card-background);
+    color: var(--text-white);
+}
+
+/* --- Animasi dan Rest Timer --- */
+.check-btn:active {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+}
+.log-row.completed {
+    position: relative;
+    border-radius: 8px;
+    color: var(--background-dark);
+}
+.log-row.completed::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--primary-gold);
+    border-radius: 8px;
+    transform-origin: left;
+    animation: highlight-wipe 0.5s ease-out forwards;
+}
+@keyframes highlight-wipe {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+.timer-display {
+    font-weight: 600;
+    color: var(--primary-gold);
+    margin-left: 10px;
+}
+.log-row.completed > * {
+    position: relative;
+}
+.check-btn.checked {
+    background-color: #444;
+    color: var(--primary-gold);
+}
+
+/* --- Custom Toggle Switch --- */
+.rest-timer-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    border-radius: 28px;
+    transition: .4s;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 3px; /* Penyesuaian posisi vertikal */
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+}
+input:checked + .slider {
+    background-color: var(--primary-gold);
+}
+input:checked + .slider:before {
+    transform: translateX(21px); /* Penyesuaian posisi horizontal */
+}
+
+/* --- Tombol Aksi Animasi --- */
+.add-set-btn:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+}
+.add-exercise-btn:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+}
+.discard-btn:active,
+.finish-btn:active {
+    transform: scale(0.9);
+    transition: transform 0.1s ease;
+}
+
+/* Delete Button Styles */
+
+/* Tombol hapus untuk setiap baris set */
+.delete-set-btn {
+    background: none;
+    border: none;
+    color: #a0a0a0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 5px;
+    margin-left: 5px;
+}
+
+.delete-set-btn:hover {
+    color: #FF5733; /* Warna merah/oranye saat di-hover */
+}
+
+/* Tombol hapus untuk kartu exercise */
+.delete-exercise-btn {
+    background: none;
+    border: none;
+    color: #a0a0a0;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.delete-exercise-btn:hover {
+    color: #FF5733;
+}
+
+/* Confirmation Modal & Completed Screen */
+
+/* Wrapper umum untuk modal/overlay */
+.modal-wrapper, .completed-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none; /* Sembunyikan secara default */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.modal-wrapper.active, .completed-wrapper.active {
+    display: flex;
+}
+
+/* Kotak konfirmasi */
+.confirm-box {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+.confirm-box h4 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #FFB703;
+}
+
+.confirm-box p {
+    color: #a0a0a0;
+    margin-bottom: 25px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-actions button {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Layar Workout Completed */
+.completed-wrapper {
+    flex-direction: column;
+    animation: fadeIn 0.5s ease;
+}
+
+.completed-content {
+    text-align: center;
+    animation: slideUp 0.7s ease-out;
+}
+
+.completed-content h1 {
+    font-size: 2.5rem;
+    color: var(--primary-gold);
+    margin-bottom: 20px;
+}
+
+.checkmark-circle {
+    width: 100px;
+    height: 100px;
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+    font-size: 4rem;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px auto;
+    animation: popIn 0.5s 0.3s ease-out backwards;
+}
+
+.completed-content p {
+    font-size: 1.1rem;
+    color: #d1d1d1;
+    margin-bottom: 30px;
+}
+
+.back-to-home-btn {
+    display: inline-block;
+    background-color: #333;
+    color: var(--text-white);
+    padding: 15px 30px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.back-to-home-btn:hover {
+    background-color: #444;
+}
+
+/* Animasi untuk confetti */
+.confetti {
+    position: fixed; /* Ubah ke fixed agar relatif terhadap layar */
+    width: 10px;
+    height: 10px;
+    background-color: var(--primary-gold);
+    opacity: 0; /* Mulai dengan transparan */
+    /* Animasi: nama, durasi, timing, delay, iterasi, arah */
+    animation: confetti-burst 1.5s ease-out 0.2s 1 forwards;
+}
+
+@keyframes confetti-burst {
+    0% {
+        transform: translate(0, 0) rotate(0);
+        opacity: 1;
+    }
+    100% {
+        /* Pindah ke posisi acak yang ditentukan oleh JS dan memudar */
+        transform: translate(var(--x), var(--y)) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* =========================
+   Animations
+========================= */
+
+@keyframes fadeIn { 
+    from { 
+        opacity: 0; 
+    } 
+    to { 
+        opacity: 1; 
+    } 
+}
+
+@keyframes slideUp { 
+    from { 
+        transform: translateY(50px); 
+        opacity: 0; 
+    } 
+    to { 
+        transform: translateY(0); 
+        opacity: 1; 
+    } 
+}
+
+@keyframes popIn { 
+    from { 
+        transform: scale(0.5); 
+    } 
+    to { 
+        transform: scale(1); 
+    } 
+}
+
+/*  Exercise Catalog Overlay  */
+
+.page-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-dark);
+    z-index: 4000;
+    display: none; /* Sembunyi secara default */
+    flex-direction: column;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease-out; /* Animasi muncul */
+}
+
+.page-overlay.active {
+    display: flex;
+}
+
+.catalog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+.catalog-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.catalog-controls {
+    padding: 0 20px 20px 20px;
+    border-bottom: 1px solid #333;
+}
+
+#search-bar {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background-color: #333;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+}
+
+#filter-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    overflow-x: auto; /* Agar bisa di-scroll di HP */
+    padding-bottom: 5px;
+}
+
+.filter-btn {
+    padding: 8px 15px;
+    border-radius: 20px;
+    background-color: #333;
+    color: #a0a0a0;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap; /* Mencegah teks filter terpotong */
+}
+
+.filter-btn.active {
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+}
+
+.catalog-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.catalog-item {
+    background-color: var(--card-background);
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 2px solid var(--card-background); /* Border transparan */
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.catalog-item:hover {
+    border-color: #444;
+}
+
+/* Style saat item dipilih */
+.catalog-item.selected {
+    border-color: var(--primary-gold);
+    box-shadow: 0 0 10px rgba(255, 183, 3, 0.3);
+}
+
+.catalog-item h4 {
+    font-size: 1.1rem;
+    color: var(--text-white);
+}
+
+.catalog-item p {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+}
+
+/* Tombol Tambah Mengambang (Floating Action Button) */
+.fab {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+    font-size: 2.5rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    z-index: 4001;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: popIn 0.3s ease-out;
+}
+
+/* --- Create Exercise Modal Styles --- */
+
+.text-gold {
+    color: var(--primary-gold);
+    background: none;
+    border: 1px solid var(--primary-gold);
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 8px;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    outline: none;
+}
+
+.modal-input:focus {
+    border-color: var(--primary-gold);
+}
+
+#create-exercise-modal {
+    z-index: 5000; /* Pastikan di atas katalog */
+}

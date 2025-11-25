@@ -1,0 +1,753 @@
+/* Global Styles & Variables */
+:root {
+    /* Color Palette dari logo kamu */
+    --primary-gold: #FFB703; /* Warna emas utama */
+    --text-white: #FFFFFF;
+    --background-dark: #121212; /* Hitam yang sedikit lebih lembut dari #000 */
+    --card-background: #1E1E1E; /* Warna latar kartu */
+}
+
+* {
+    /* Reset CSS dasar untuk konsistensi */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Poppins', sans-serif; /* Menggunakan font Poppins */
+    background-color: var(--background-dark);
+    color: var(--text-white);
+    padding: 20px;
+}
+
+
+/* Navbar / Header */
+.navbar {
+    display: flex;
+    justify-content: space-between; /* Membuat logo & ikon profil terpisah */
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.logo {
+    height: 100px; /* Atur tinggi logo */
+    width: 100px;
+}
+
+.profile-icon {
+    height: 45px;
+    width: 45px;
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+    font-weight: 700;
+    border-radius: 50%; /* Membuatnya menjadi lingkaran */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* --- 3. Dashboard Container & Cards --- */
+.dashboard-container {
+    display: grid;
+    gap: 20px; /* Jarak antar kartu */
+}
+
+.card {
+    background-color: var(--card-background);
+    padding: 25px;
+    border-radius: 15px; /* Sudut kartu yang lebih tumpul */
+}
+
+/*Styling Spesifik untuk Setiap Kartu */
+
+/* Kartu Summary dengan EFEK GRADASI spesial! */
+.summary-card {
+    /* Ini adalah gradasi yang kamu minta, dari emas ke transparan */
+    background: linear-gradient(145deg, var(--primary-gold) -20%, var(--card-background) 35%);
+}
+
+.summary-card h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.summary-card .stats {
+    display: flex;
+    gap: 30px; /* Jarak antara Total Volume dan Rank */
+}
+
+.stats div {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-gold);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #a0a0a0; /* Abu-abu untuk label */
+}
+
+
+
+.cta-button {
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out; /* Animasi saat di-hover */
+}
+
+.cta-button:hover {
+    transform: scale(1.02); /* Sedikit membesar saat kursor di atasnya */
+}
+
+/* Kartu Leaderboard */
+.leaderboard-card h3 {
+    margin-bottom: 15px;
+}
+
+.leaderboard-list {
+    list-style: none; /* Menghilangkan bulatan/angka default */
+    padding-left: 0;
+}
+
+.leaderboard-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #333; /* Garis pemisah */
+}
+
+.leaderboard-list li:last-child {
+    border-bottom: none; /* Hilangkan garis untuk item terakhir */
+}
+
+
+/* History Page Styles*/
+
+.history-list {
+    display: grid;
+    gap: 20px; /* Jarak antar kartu history */
+}
+
+.history-card {
+    background-color: var(--card-background);
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.history-card-header {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+}
+
+.history-card-header .date {
+    font-weight: 600;
+    color: var(--text-white);
+}
+
+.history-card-header .duration {
+    font-size: 0.9rem;
+    color: #a0a0a0;
+}
+
+.exercise-log {
+    margin-bottom: 20px;
+}
+
+.exercise-log:last-child {
+    margin-bottom: 0;
+}
+
+.exercise-log h4 {
+    font-weight: 600;
+    color: var(--primary-gold);
+    margin-bottom: 10px;
+}
+
+.exercise-log ul {
+    list-style: none;
+    padding-left: 15px;
+}
+
+.exercise-log li {
+    color: #d1d1d1;
+    margin-bottom: 5px;
+}
+
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+    position: fixed; /* Tetap di posisi yang sama saat di-scroll */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--card-background);
+    display: flex; /* Membuat item berjajar horizontal */
+    justify-content: space-around; /* Memberi jarak yang sama antar item */
+    padding: 10px 0;
+    border-top: 1px solid #333;
+    z-index: 1000; /* Memastikan navbar selalu di atas konten lain */
+}
+
+.nav-link {
+    color: #a0a0a0; /* Warna ikon/teks non-aktif */
+    text-decoration: none;
+    font-size: 0.8rem;
+    text-align: center;
+    transition: color 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+    color: var(--text-white);
+}
+
+/* Style untuk link yang sedang AKTIF */
+.nav-link.active {
+    color: var(--primary-gold);
+    font-weight: 600;
+}
+
+/* Page Content & Visibility*/
+
+/* Beri padding bawah agar konten tidak tertutup navbar */
+.page-content {
+    padding-bottom: 80px; 
+}
+
+/* Logika untuk menampilkan dan menyembunyikan halaman */
+.page {
+    display: none; /* Secara default, semua halaman disembunyikan */
+}
+
+.page.active {
+    display: block; /* Hanya halaman dengan kelas 'active' yang ditampilkan */
+}
+
+/* Header di dalam setiap halaman */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+/* Decorative Bars (Side-by-side) */
+
+.action-card {
+    display: flex;
+    justify-content: space-between; /* Mendorong dekorasi ke tepi & konten di tengah */
+    align-items: center;
+    padding: 20px 30px; /* Atur padding agar pas */
+}
+
+.action-content {
+    text-align: center;
+}
+
+.action-content h3 {
+    margin-bottom: 16px; /* Memberi jarak ke tombol di bawahnya */
+}
+
+.deco-bars {
+    display: flex; /* Membuat bar berjajar horizontal */
+    align-items: center; /* Menjaga bar tetap sejajar di tengah */
+}
+
+.deco-bar {
+    width: 8px; /* Membuat bar lebih ramping */
+    background-color: var(--primary-gold);
+    margin: 0 3px; /* Jarak antar bar */
+    opacity: 0.6;
+}
+
+/* Variasi tinggi untuk setiap bar */
+.deco-bar:nth-child(1) { height: 20px; }
+.deco-bar:nth-child(2) { height: 35px; opacity: 1; } /* Bar tengah paling tinggi & jelas */
+.deco-bar:nth-child(3) { height: 20px; }
+
+
+/* --- KUNCI UTAMA: ARAH KEMIRINGAN --- */
+
+/* Atur kemiringan untuk bar di KIRI agar "menghadap" ke tengah */
+.deco-bars:not(.right) .deco-bar {
+    transform: skewX(20deg);
+}
+
+/* Atur kemiringan untuk bar di KANAN agar "menghadap" ke tengah */
+.deco-bars.right .deco-bar {
+    transform: skewX(-20deg);
+}
+
+/* --- 8. Permanent Top Header & Stats --- */
+
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+}
+
+.user-stats {
+    display: flex;
+    gap: 10px; /* Jarak antara Level dan Streak */
+}
+
+.stat-level, .stat-streak {
+    padding: 8px 12px;
+    border-radius: 20px; /* Membuatnya berbentuk seperti pil */
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.stat-level {
+    background-color: var(--card-background);
+    color: var(--primary-gold);
+    border: 1px solid var(--primary-gold);
+}
+
+.stat-streak {
+    background-color: var(--card-background);
+    color: #FF5733; /* Warna oranye untuk api */
+    border: 1px solid #FF5733;
+}
+
+/* Penyesuaian padding untuk konten utama agar tidak terlalu menempel ke header */
+.page-content {
+    padding-top: 20px; /* Atur sesuai kebutuhan */
+    padding-bottom: 80px; /* Tetap sama untuk navbar bawah */
+}
+
+/* Placeholder untuk judul di halaman lain agar sejajar */
+.page-header-placeholder {
+    margin-bottom: 40px;
+}
+
+/* Full Leaderboard Styles*/
+
+.leaderboard-list-full {
+    list-style: none; /* Menghilangkan angka default dari <ol> */
+    padding: 0;
+    margin: 0;
+}
+
+.leaderboard-item {
+    display: flex; /* Membuat rank, nama, dan volume berjajar horizontal */
+    justify-content: space-between; /* Mendorong volume ke paling kanan */
+    align-items: center;
+    padding: 15px 10px;
+    border-bottom: 1px solid #333; /* Garis pemisah antar item */
+    transition: background-color 0.2s ease;
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none; /* Hapus garis pemisah untuk item terakhir */
+}
+
+.leaderboard-item .rank {
+    font-weight: 700;
+    color: var(--primary-gold);
+    flex-basis: 40px; /* Memberi ruang tetap untuk nomor peringkat */
+}
+
+.leaderboard-item .name {
+    flex-grow: 1; /* Membuat nama mengisi ruang kosong yang tersisa */
+    font-weight: 600;
+}
+
+.leaderboard-item .volume {
+    font-weight: 700;
+    color: #a0a0a0;
+}
+
+/* Style khusus untuk menandai pengguna saat ini di leaderboard */
+.leaderboard-item.current-user {
+    background-color: rgba(255, 183, 3, 0.1); /* Latar belakang kuning transparan */
+    border-left: 3px solid var(--primary-gold); /* Garis penanda di kiri */
+    border-right: 3px solid var(--primary-gold);
+    margin: 0 -10px; /* Mengimbangi padding agar penanda menyentuh tepi kartu */
+    padding: 15px 20px;
+}
+
+/* Profile Page Styles */
+
+.profile-grid {
+    display: grid;
+    gap: 20px;
+}
+
+/* Kartu header dengan foto profil & nama */
+.profile-header-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-icon.large {
+    height: 80px;
+    width: 80px;
+    font-size: 2.5rem;
+}
+
+.profile-info h2 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.profile-info p {
+    font-size: 1.1rem;
+    color: #a0a0a0;
+}
+
+.rank-text {
+    color: var(--primary-gold);
+    font-weight: 600;
+}
+
+/* Kartu statistik kecil */
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+}
+
+/* Pengaturan Tujuan */
+.settings-card h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.goal-options {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.goal-btn {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #555;
+    background-color: transparent;
+    color: #a0a0a0;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.goal-btn.active {
+    background-color: var(--primary-gold);
+    border-color: var(--primary-gold);
+    color: var(--background-dark);
+}
+
+/* Profile Card Decorations */
+
+
+/* Menambahkan garis aksen emas di atas setiap kartu di profil */
+.profile-grid .card {
+    border-top: 3px solid var(--primary-gold);
+}
+
+/* Mengatur ulang layout stat-card untuk mengakomodasi ikon */
+.stat-card {
+    gap: 10px; /* Memberi jarak antara ikon, value, dan label */
+}
+
+.stat-icon {
+    font-size: 2.5rem; /* Ukuran ikon emoji */
+}
+
+/* Home Actions Wrapper & Nutrition Card */
+
+/* Wrapper untuk membuat 2 kartu bersebelahan */
+.home-actions-wrapper {
+    display: grid;
+    grid-template-columns: 1fr; /* 2 kolom dengan lebar yang sama */
+    gap: 20px;
+}
+
+/* Aturan tambahan untuk layar yang lebih besar (tablet ke atas) */
+@media (min-width: 768px) {
+    .home-actions-wrapper {
+        /* Ubah kembali menjadi 2 kolom jika layar lebar */
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Sedikit penyesuaian untuk action-card agar pas */
+.action-card {
+    padding: 20px; /* Menyamakan padding */
+}
+
+/* Styling untuk kartu nutrisi baru */
+.nutrition-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    text-decoration: none; /* Menghapus garis bawah dari link */
+    color: var(--text-white);
+    padding: 20px;
+    border: 2px dashed #444; /* Garis putus-putus seperti di gambar biru */
+    transition: all 0.2s ease;
+}
+
+.nutrition-card:hover {
+    border-color: var(--primary-gold);
+    background-color: #2a2a2a;
+}
+
+.nutrition-card h3 {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.nutrition-card p {
+    font-size: 0.9rem;
+    color: #a0a0a0;
+    margin-bottom: 15px;
+}
+
+.arrow-icon {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-gold);
+}
+
+/* Quests Button & Modal Styles */
+
+/* Style untuk tombol Quests di header */
+.stat-quests {
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: var(--card-background);
+    color: var(--text-white);
+    border: 1px solid #555;
+    cursor: pointer;
+}
+
+/* Wrapper umum untuk modal (jika belum ada) */
+.modal-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none; /* Sembunyi secara default */
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-wrapper.active {
+    display: flex;
+}
+
+/* Konten di dalam modal quests */
+.quests-modal-content {
+    position: relative;
+    background-color: var(--card-background);
+    padding: 25px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.quests-modal-content h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #a0a0a0;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Quest Progress Bar Styles */
+
+.quest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Jarak antar quest item */
+}
+
+
+.quest-title {
+    font-weight: 500;
+    margin-bottom: 8px; /* Jarak dari judul ke progress bar */
+}
+
+.quest-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Jarak antara progress bar dan teks */
+}
+
+.progress-bar-bg {
+    flex-grow: 1; /* Membuat progress bar mengisi sisa ruang */
+    background-color: #333;
+    border-radius: 5px;
+    height: 10px;
+    overflow: hidden; /* Memastikan bar di dalam tidak keluar dari radius */
+}
+
+.progress-bar-fg {
+    background-color: var(--primary-gold);
+    height: 100%;
+    border-radius: 5px;
+}
+
+.quest-progress-text {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+    font-weight: 500;
+}
+
+/* --- Profile Form Styles --- */
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: left; /* Reset text align center dari settings-card */
+}
+
+.form-row-profile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-group-profile {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group-profile label {
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    margin-bottom: 5px;
+}
+
+/* Style input agar mirip dengan halaman workout */
+.form-group-profile input,
+.form-group-profile select {
+    background-color: #121212; /* Lebih gelap dari kartu */
+    border: 1px solid #333;
+    color: var(--text-white);
+    padding: 10px;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+}
+
+.form-group-profile input:focus,
+.form-group-profile select:focus {
+    border-color: var(--primary-gold);
+}
+
+/* Khusus tombol save */
+#save-profile-btn {
+    font-size: 0.9rem;
+    padding: 12px;
+}
+
+* Wrapper umum untuk modal/overlay */
+.modal-wrapper, .completed-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none; /* Sembunyikan secara default */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.modal-wrapper.active, .completed-wrapper.active {
+    display: flex;
+}
+
+/* Kotak konfirmasi */
+.confirm-box {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+.confirm-box h4 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #FFB703;
+}
+
+.confirm-box p {
+    color: #a0a0a0;
+    margin-bottom: 25px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-actions button {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+    font-family: 'Poppins', sans-serif;
+}

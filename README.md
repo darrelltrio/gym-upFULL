@@ -35,8 +35,8 @@
 Built with love and grit for IS556-A Web Development course project @Universitas Multimedia Nusantara
 
 Regards,
-Darrell Theodoreno Rioda
-Muhammad Hafiz Fadhail
-Marco Jozua Fabiano
-Gabriela Zhafrani
-Nadine Febrianti
+* Darrell Theodoreno Rioda
+* Muhammad Hafiz Fadhail
+* Marco Jozua Fabiano
+* Gabriela Zhafrani
+* Nadine Febrianti

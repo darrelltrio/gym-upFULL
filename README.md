@@ -2,6 +2,8 @@
 
 **Gym-Up** is a gamified workout tracker designed to help you level up your fitness journey. Built with a decoupled architecture, it combines a robust Laravel API with a responsive Vanilla JS frontend.
 
+IGNORE FILE index.php
+
 ## 🚀 Tech Stack
 
 * **Frontend:** Vanilla JavaScript (ES6+), HTML5, CSS3.

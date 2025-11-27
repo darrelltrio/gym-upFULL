@@ -34,7 +34,7 @@ IGNORE FILE index.php
 * Hybrid approach between Single page app and Multi Page app for versatility, easier load, easier development and of course, easier usage
 
 ---
-Built with love and grit for IS556-A Web Development course project @Universitas Multimedia Nusantara
+Built with love and grit for Web Development course project @Universitas Multimedia Nusantara
 
 Regards,
 * Darrell Theodoreno Rioda

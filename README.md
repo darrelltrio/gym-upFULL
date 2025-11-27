@@ -29,6 +29,7 @@
 ### 4. Custom UI/UX
 * **Dark Mode:** Sleek dark aesthetic with Gold accents.
 * **Custom Alerts:** Replaced browser defaults with animated, custom-styled modals for success/error messages.
+* Hybrid approach between Single page app and Multi Page app for versatility, easier load, easier development and of course, easier usage
 
 ---
 Built with love and grit for IS556-A Web Development course project @Universitas Multimedia Nusantara

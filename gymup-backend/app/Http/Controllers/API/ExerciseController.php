@@ -8,34 +8,61 @@ use Illuminate\Http\Request;
 
 class ExerciseController extends Controller
 {
-    // GET /api/exercises
+    // GET: Ambil semua latihan
     public function index()
     {
-        $exercises = Exercise::all();
-        return response()->json($exercises);
+        return response()->json(Exercise::all());
     }
 
-    // POST /api/exercises (BARU)
+    // POST: Tambah latihan baru
     public function store(Request $request)
     {
-        // 1. Validasi Input
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255|unique:exercises', // Nama harus unik
+            'name' => 'required|string|max:255|unique:exercises',
             'muscle_group' => 'required|string|max:100',
             'equipment' => 'required|string|max:100',
         ]);
 
-        // 2. Simpan ke Database
-        $exercise = Exercise::create([
-            'name' => $validatedData['name'],
-            'muscle_group' => $validatedData['muscle_group'],
-            'equipment' => $validatedData['equipment'],
-        ]);
+        $exercise = Exercise::create($validatedData);
 
-        // 3. Kembalikan data latihan baru (untuk update UI frontend)
         return response()->json([
             'message' => 'Exercise created successfully',
             'data' => $exercise
         ], 201);
+    }
+
+    // PUT: Update latihan (BARU)
+    public function update(Request $request, $id)
+    {
+        $exercise = Exercise::find($id);
+
+        if (!$exercise) {
+            return response()->json(['message' => 'Exercise not found'], 404);
+        }
+
+        // Validasi: Nama unik, tapi boleh sama dengan namanya sendiri saat ini
+        $validatedData = $request->validate([
+            'name' => 'sometimes|required|string|max:255|unique:exercises,name,' . $id . ',exercise_id',
+            'muscle_group' => 'sometimes|required|string|max:100',
+            'equipment' => 'sometimes|required|string|max:100',
+        ]);
+
+        $exercise->update($validatedData);
+
+        return response()->json([
+            'message' => 'Exercise updated successfully',
+            'data' => $exercise
+        ]);
+    }
+
+    // DELETE: Hapus latihan (BARU)
+    public function destroy($id)
+    {
+        $exercise = Exercise::find($id);
+        if (!$exercise) {
+            return response()->json(['message' => 'Exercise not found'], 404);
+        }
+        $exercise->delete();
+        return response()->json(['message' => 'Exercise deleted successfully']);
     }
 }

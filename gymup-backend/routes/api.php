@@ -1,10 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ExerciseController;
+use Illuminate\Support\Facades\Route;
 
-// GET: Ambil semua latihan (Katalog)
 Route::get('/exercises', [ExerciseController::class, 'index']);
-
-// POST: Tambah latihan baru (BARU)
 Route::post('/exercises', [ExerciseController::class, 'store']);
+Route::put('/exercises/{id}', [ExerciseController::class, 'update']);     // Route Edit
+Route::delete('/exercises/{id}', [ExerciseController::class, 'destroy']); // Route Hapus

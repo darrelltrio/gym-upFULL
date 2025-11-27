@@ -10,9 +10,11 @@ class ExerciseController extends Controller
 {
     // GET: Ambil semua latihan
     public function index()
-    {
-        return response()->json(Exercise::all());
-    }
+{
+    // Pastikan ada return response()->json(...)
+    $exercises = Exercise::all();
+    return response()->json($exercises); 
+}
 
     // POST: Tambah latihan baru
     public function store(Request $request)

@@ -608,3 +608,75 @@ input:checked + .slider:before {
 #create-exercise-modal {
     z-index: 5000; /* Pastikan di atas katalog */
 }
+
+/* Gaya untuk tombol Edit dan Delete di Katalog */
+.catalog-item {
+    /* Pastikan flexbox aktif agar tombol ada di kanan */
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+
+.edit-item-btn, 
+.delete-item-btn {
+    background: transparent;  /* Hapus background abu-abu bawaan */
+    border: none;
+    cursor: pointer;
+    font-size: 1.3rem;        /* Ukuran sedikit diperbesar */
+    padding: 5px;
+    
+    /* WARNA DEFAULT: Putih agar terlihat di background gelap */
+    color: #FFFFFF;           
+    
+    /* ANIMASI: Transisi halus untuk warna dan ukuran */
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.edit-item-btn:hover {
+    color: var(--primary-gold);
+    transform: scale(1.1);
+}
+
+.delete-item-btn:hover {
+    color: red;
+    transform: scale(1.1);
+}
+
+/* ========================================= */
+/* CUSTOM ALERT STYLES                       */
+/* ========================================= */
+
+/* Warna Ikon Status */
+.icon-success {
+    color: var(--primary-gold);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.icon-error {
+    color: #FF4D4D; /* Merah terang */
+    animation: shake 0.4s ease-in-out;
+}
+
+/* Animasi Shake untuk Error */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Tombol OK khusus Alert */
+#alert-ok-btn {
+    background-color: #333;
+    border: 1px solid var(--text-white);
+    color: var(--text-white);
+    transition: all 0.2s;
+}
+
+#alert-ok-btn:hover {
+    background-color: var(--text-white);
+    color: var(--background-dark);
+}
+
+#confirm-modal {
+    z-index: 9999 !important; /* Paksa jadi layer tertinggi */
+}

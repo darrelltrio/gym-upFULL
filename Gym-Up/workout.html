@@ -28,15 +28,18 @@
 
     <div id="confirm-modal" class="modal-wrapper">
         <div class="modal-content confirm-box">
+            <div id="modal-icon" style="font-size: 3.5rem; margin-bottom: 15px;"></div>
+            
             <h4 id="modal-title"></h4> 
             <p id="modal-text"></p>   
-            <div class="modal-actions">
+            
+            <div id="modal-confirm-actions" class="modal-actions">
                 <button id="confirm-no-btn" class="btn-secondary">No</button>
                 <button id="confirm-yes-btn" class="btn-primary">Yes</button>
             </div>
             
             <div id="modal-alert-actions" class="modal-actions" style="display: none;">
-                <button id="alert-ok-btn" class="btn-primary" style="width: 100%;">OK</button>
+                <button id="alert-ok-btn" class="btn-primary" style="width: 100%;">OK, Got it!</button>
             </div>
         </div>
     </div>
@@ -67,6 +70,7 @@
                 <button class="filter-btn" data-group="Legs">Legs</button>
                 <button class="filter-btn" data-group="Shoulders">Shoulders</button>
                 <button class="filter-btn" data-group="Arms">Arms</button>
+                <button class="filter-btn" data-group="Core">Core</button>
             </div>
         </div>
 
@@ -94,7 +98,6 @@
                     <option value="Shoulders">Shoulders</option>
                     <option value="Arms">Arms</option>
                     <option value="Core">Core</option>
-                    <option value="Cardio">Cardio</option>
                 </select>
             </div>
 

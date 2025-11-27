@@ -1,5 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
 
+    // ==========================================
+    // KONFIGURASI API
+    // ==========================================
+    // Gunakan http://127.0.0.1:8000/api jika menjalankan 'php artisan serve'
+    // Gunakan http://gymup-backend.test/api jika menggunakan Laragon Virtual Host
+    
+    const API_BASE_URL = 'http://127.0.0.1:8000/api'; 
+
     // =======================================================
     // BAGIAN 1: SELEKSI ELEMEN & VARIABEL GLOBAL
     // =======================================================
@@ -12,7 +20,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmModal = document.getElementById('confirm-modal');
     const modalTitle = document.getElementById('modal-title');
     const modalText = document.getElementById('modal-text');
-    // Kita hapus referensi confirmYesBtn global agar tidak error
     const confirmNoBtn = document.getElementById('confirm-no-btn');
     const completedScreen = document.getElementById('completed-screen');
 
@@ -28,11 +35,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelCreateBtn = document.getElementById('cancel-create-btn');
     const saveExerciseBtn = document.getElementById('save-exercise-btn');
 
+    const modalIcon = document.getElementById('modal-icon');
+    const modalConfirmActions = document.getElementById('modal-confirm-actions');
+    const modalAlertActions = document.getElementById('modal-alert-actions');
+    const alertOkBtn = document.getElementById('alert-ok-btn');
+
     let startTime;
     let durationInterval;
     let restTimerInterval = null;
     let selectedExercises = []; 
     let exerciseCatalog = [];
+    let isEditing = false;
+    let editingExerciseId = null;
 
     // =======================================================
     // BAGIAN 2: FUNGSI-FUNGSI UTAMA
@@ -76,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const savedState = JSON.parse(savedStateJSON);
         startTime = savedState.startTime;
         savedState.exercises.forEach(exerciseData => {
-            const exercise = exerciseCatalog.find(ex => ex.id == exerciseData.id);
+            const exercise = exerciseCatalog.find(ex => (ex.exercise_id || ex.id) == exerciseData.id);
             const exerciseName = exercise ? exercise.name : exerciseData.name || 'Unknown Exercise';
             const newCard = addExerciseCard(exerciseData.id, exerciseName, false);
             const setLogContainer = newCard.querySelector('.set-log');
@@ -112,11 +126,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (restSeconds <= 0) { clearInterval(restTimerInterval); timerDisplay.textContent = "Time's Up!"; }
         }, 1000);
     }
+    
     function stopRestTimer(card) {
         if (restTimerInterval) clearInterval(restTimerInterval);
         const timerDisplay = card.querySelector('.timer-display');
         if (timerDisplay) timerDisplay.textContent = '';
     }
+    
     function createConfetti() {
         const confettiCount = 100;
         for (let i = 0; i < confettiCount; i++) {
@@ -134,85 +150,170 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // FUNGSI MODAL YANG LEBIH STABIL
     function showConfirmModal(title, text, onConfirm) {
         modalTitle.textContent = title;
         modalText.textContent = text;
+        modalIcon.innerHTML = '❓'; // Ikon Tanya
+        modalIcon.className = '';   // Reset class warna
+
+        // Tampilkan tombol Yes/No, Sembunyikan OK
+        modalConfirmActions.style.display = 'flex';
+        modalAlertActions.style.display = 'none';
+        
         confirmModal.classList.add('active');
 
-        // Selalu ambil elemen tombol terbaru dari DOM untuk menghindari referensi mati
+        // Reset Listener Tombol Yes
         const currentYesBtn = document.getElementById('confirm-yes-btn');
-        
-        // Kloning tombol untuk menghapus event listener lama
         const newYesBtn = currentYesBtn.cloneNode(true);
         currentYesBtn.parentNode.replaceChild(newYesBtn, currentYesBtn);
-        
-        // Pasang event listener baru
         newYesBtn.addEventListener('click', onConfirm);
     }
-    function showAlert(title, text, onOk = null) {
+
+    // FUNGSI 2: CUSTOM ALERT (SUCCESS/ERROR) - PENGGANTI ALERT BROWSER
+    function showCustomAlert(title, text, type = 'success') {
         modalTitle.textContent = title;
         modalText.textContent = text;
+        
+        // Tentukan Ikon & Warna
+        if (type === 'success') {
+            modalIcon.innerHTML = '✓'; // Centang
+            modalIcon.className = 'icon-success';
+        } else if (type === 'error') {
+            modalIcon.innerHTML = '⚠'; // Segitiga Seru
+            modalIcon.className = 'icon-error';
+        } else {
+            modalIcon.innerHTML = 'ℹ'; // Info
+            modalIcon.className = '';
+        }
+
+        // Sembunyikan Yes/No, Tampilkan OK
+        modalConfirmActions.style.display = 'none';
+        modalAlertActions.style.display = 'flex';
+
         confirmModal.classList.add('active');
 
-        // Sembunyikan tombol Yes/No, Tampilkan tombol OK
-        confirmActions.style.display = 'none';
-        alertActions.style.display = 'flex';
-
-        // Reset event listener tombol OK
-        const newOkBtn = alertOkBtn.cloneNode(true);
-        alertOkBtn.parentNode.replaceChild(newOkBtn, alertOkBtn);
-
-        newOkBtn.addEventListener('click', () => {
+        // Logic Tombol OK (Tutup Modal)
+        alertOkBtn.onclick = function() {
             confirmModal.classList.remove('active');
-            if (onOk) onOk();
-        });
+        };
     }
 
-    // FUNGSI API & KATALOG
+    // --- FUNGSI HELPER MODAL CREATE/EDIT (YANG SEBELUMNYA HILANG) ---
+    // --- FUNGSI HELPER MODAL CREATE/EDIT (DIPERBAIKI) ---
+    function openCreateModal() {
+        isEditing = false;
+        editingExerciseId = null;
+        
+        // Reset Form
+        document.getElementById('new-exercise-name').value = "";
+        document.getElementById('new-exercise-muscle').value = "Chest";
+        document.getElementById('new-exercise-equipment').value = "Barbell";
+        
+        // PERBAIKAN DI SINI: Ubah 'h3' menjadi 'h4' sesuai HTML Anda
+        const titleElement = document.querySelector('#create-exercise-modal h4');
+        if (titleElement) titleElement.textContent = "Create New Exercise";
+
+        // Ubah teks tombol simpan
+        saveExerciseBtn.textContent = "Save Exercise";
+        
+        // Munculkan Modal
+        createExerciseModal.classList.add('active');
+    }
+
+    function openEditModal(exercise) {
+        isEditing = true;
+        editingExerciseId = exercise.exercise_id || exercise.id;
+        
+        // Isi Form dengan data lama
+        document.getElementById('new-exercise-name').value = exercise.name;
+        document.getElementById('new-exercise-muscle').value = exercise.muscle_group;
+        document.getElementById('new-exercise-equipment').value = exercise.equipment;
+        
+        // PERBAIKAN DI SINI: Ubah 'h3' menjadi 'h4'
+        const titleElement = document.querySelector('#create-exercise-modal h4');
+        if (titleElement) titleElement.textContent = "Edit Exercise";
+
+        // Ubah teks tombol simpan
+        saveExerciseBtn.textContent = "Update Exercise";
+        
+        // Munculkan Modal
+        createExerciseModal.classList.add('active');
+    }
+    // -------------------------------------------------------------
+
+    // FUNGSI API & KATALOG (DIPERBAIKI UNTUK DEBUGGING)
     async function fetchExercises() {
         try {
-            const response = await fetch('http://gymup-backend.test/api/exercises');
-            exerciseCatalog = await response.json();
+            console.log("Menghubungi API:", `${API_BASE_URL}/exercises`);
+            const response = await fetch(`${API_BASE_URL}/exercises`);
+            
+            // Cek apakah server memberikan respon OK (status 200)
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Server Error: ${response.status} ${text}`);
+            }
+
+            const data = await response.json();
+            
+            // Handle jika Laravel membungkus data dalam properti 'data' (API Resource)
+            exerciseCatalog = Array.isArray(data) ? data : (data.data || []);
+            
             console.log("Exercises loaded:", exerciseCatalog);
+            populateCatalog();
+            
         } catch (error) {
             console.error("Gagal mengambil data latihan:", error);
-            exerciseCatalog = [
-                { exercise_id: 1, name: "Bench Press (Offline)", muscle_group: "Chest" },
-                { exercise_id: 2, name: "Squat (Offline)", muscle_group: "Legs" }
-            ];
+            catalogList.innerHTML = `<p style='color:red; text-align:center; padding:20px;'>
+                <b>Connection Failed!</b><br>
+                Make sure backend is active.<br>
+                <small>${error.message}</small>
+            </p>`;
         }
     }
 
-    async function createNewExercise() {
+    async function handleSaveExercise() {
         const name = document.getElementById('new-exercise-name').value;
         const muscle = document.getElementById('new-exercise-muscle').value;
         const equipment = document.getElementById('new-exercise-equipment').value;
-        if (!name) { alert("Please enter an exercise name."); return; }
-        
+
+        if (!name) { showCustomAlert("Failed", "Please enter an exercise name.", "error"); return; }
+
         const originalText = saveExerciseBtn.textContent;
-        saveExerciseBtn.textContent = "Saving...";
+        saveExerciseBtn.textContent = isEditing ? "Updating..." : "Saving...";
         saveExerciseBtn.disabled = true;
 
         try {
-            const response = await fetch('http://gymup-backend.test/api/exercises', {
-                method: 'POST',
+            let url = `${API_BASE_URL}/exercises`;
+            let method = 'POST';
+
+            if (isEditing && editingExerciseId) {
+                url = `${API_BASE_URL}/exercises/${editingExerciseId}`;
+                method = 'PUT';
+            }
+
+            const response = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ name: name, muscle_group: muscle, equipment: equipment })
             });
+
             const result = await response.json();
+
             if (response.ok) {
-                alert("Exercise created!");
+                showCustomAlert(
+                    isEditing ? "Update Success!" : "Created Successfully!", 
+                    isEditing ? `Exercise "${name}" has been updated.` : `Exercise "${name}" has been added to catalog.`, 
+                    "success"
+                );
                 createExerciseModal.classList.remove('active');
-                document.getElementById('new-exercise-name').value = "";
                 await fetchExercises(); 
                 populateCatalog(searchBar.value);
             } else {
-                alert("Error: " + (result.message || "Failed to create exercise"));
+                showCustomAlert("Oops!", result.message || "Failed to save exercise", "error");
             }
         } catch (error) {
             console.error(error);
-            alert("Connection error! Check if backend is running.");
+            showCustomAlert("Connection Error", "Cannot connect to the backend server.", "error");
         } finally {
             saveExerciseBtn.textContent = originalText;
             saveExerciseBtn.disabled = false;
@@ -221,18 +322,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function populateCatalog(searchTerm = '', filterGroup = 'all') {
         catalogList.innerHTML = "";
+        
+        // Safety check jika exerciseCatalog bukan array
+        if (!Array.isArray(exerciseCatalog)) {
+            console.warn("Catalog data is not an array:", exerciseCatalog);
+            return;
+        }
+
         const filteredList = exerciseCatalog.filter(ex => {
             const matchesSearch = ex.name.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesGroup = (filterGroup === 'all' || (ex.muscle_group && ex.muscle_group.toLowerCase() === filterGroup.toLowerCase()));
             return matchesSearch && matchesGroup;
         });
-        if (filteredList.length === 0) { catalogList.innerHTML = "<p style='color:#888; text-align:center; margin-top:20px;'>No exercises found.</p>"; return; }
+
+        if (filteredList.length === 0) {
+            catalogList.innerHTML = "<p style='color:#888; text-align:center; margin-top:20px;'>No exercises found.</p>";
+            return;
+        }
+
         filteredList.forEach(ex => {
             const id = ex.exercise_id || ex.id;
             const isSelected = selectedExercises.includes(id);
-            catalogList.innerHTML += `<div class="catalog-item ${isSelected ? 'selected' : ''}" data-id="${id}" data-name="${ex.name}"><h4>${ex.name}</h4><p>${ex.muscle_group || 'General'}</p></div>`;
+
+            catalogList.innerHTML += `
+                <div class="catalog-item ${isSelected ? 'selected' : ''}" data-id="${id}" data-name="${ex.name}">
+                    <div style="flex-grow:1;">
+                        <h4>${ex.name}</h4>
+                        <p style="color: #888; font-size: 0.85rem; margin-top: 2px;">
+                        ${ex.muscle_group || 'General'} <span style="color: var(--primary-gold); margin: 0 5px;">•</span> ${ex.equipment || 'Bodyweight'}
+                    </p>
+                    </div>
+                    <div class="item-actions" style="display:flex; gap:10px;">
+                        <button class="edit-item-btn" title="Edit" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">✎</button>
+                        <button class="delete-item-btn" title="Delete" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">🗑️</button>
+                    </div>
+                </div>`;
         });
     }
+
     function updateFabVisibility() { addSelectedBtn.style.display = selectedExercises.length > 0 ? 'flex' : 'none'; }
 
     function addExerciseCard(exerciseId, exerciseName, shouldSave = true) {
@@ -263,6 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     workoutContent.addEventListener('click', function(event) {
         let stateNeedsSaving = false;
+        
         if (event.target.matches('.add-set-btn')) {
             const card = event.target.closest('.exercise-card');
             const setLogContainer = card.querySelector('.set-log');
@@ -273,12 +401,14 @@ document.addEventListener('DOMContentLoaded', function() {
             setLogContainer.appendChild(newRow);
             stateNeedsSaving = true;
         }
+        
         if (event.target.matches('.check-btn')) {
             const button = event.target;
             const row = button.closest('.log-row');
             const card = button.closest('.exercise-card');
             const inputs = row.querySelectorAll('input');
             const restTimerToggle = card.querySelector('.switch input[type="checkbox"]');
+            
             if (row.classList.contains('completed')) {
                 row.classList.remove('completed');
                 button.classList.remove('checked');
@@ -292,6 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             stateNeedsSaving = true;
         }
+        
         if (event.target.matches('.delete-set-btn')) {
             const rowToDelete = event.target.closest('.log-row');
             const card = event.target.closest('.exercise-card');
@@ -300,15 +431,21 @@ document.addEventListener('DOMContentLoaded', function() {
             allRows.forEach((row, index) => { row.querySelector('.set-number').textContent = index + 1; });
             stateNeedsSaving = true;
         }
+        
         if (event.target.matches('.delete-exercise-btn')) {
             const cardToDelete = event.target.closest('.exercise-card');
             cardToDelete.remove();
             stateNeedsSaving = true;
         }
+        
         if (stateNeedsSaving) saveWorkoutState();
     });
     
-    addExerciseBtn.addEventListener('click', () => { populateCatalog(); catalogOverlay.classList.add('active'); updateFabVisibility(); });
+    addExerciseBtn.addEventListener('click', () => { 
+        populateCatalog(); 
+        catalogOverlay.classList.add('active'); 
+        updateFabVisibility(); 
+    });
 
     discardBtn.addEventListener('click', () => {
         showConfirmModal('Discard Workout?', 'Your progress will be lost. Are you sure?', () => {
@@ -332,11 +469,13 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmNoBtn.addEventListener('click', () => { confirmModal.classList.remove('active'); });
 
     closeCatalogBtn.addEventListener('click', () => catalogOverlay.classList.remove('active'));
+    
     searchBar.addEventListener('input', () => {
         const searchTerm = searchBar.value;
         const activeFilter = filterContainer.querySelector('.filter-btn.active').dataset.group;
         populateCatalog(searchTerm, activeFilter);
     });
+    
     filterContainer.addEventListener('click', (event) => {
         if (event.target.matches('.filter-btn')) {
             filterContainer.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -346,15 +485,70 @@ document.addEventListener('DOMContentLoaded', function() {
             populateCatalog(searchTerm, activeFilter);
         }
     });
-    catalogList.addEventListener('click', (event) => {
+
+    catalogList.addEventListener('click', async (event) => {
+        // A. Cek tombol EDIT
+        if (event.target.closest('.edit-item-btn')) {
+            event.stopPropagation(); 
+            const id = parseInt(event.target.closest('.catalog-item').dataset.id);
+            const exercise = exerciseCatalog.find(ex => (ex.exercise_id || ex.id) === id);
+            
+            if (exercise) openEditModal(exercise); // Sekarang fungsi ini sudah ADA
+            return;
+        }
+
+        // B. Cek tombol DELETE
+        if (event.target.closest('.delete-item-btn')) {
+            event.stopPropagation(); // Stop agar tidak memilih item
+            const id = parseInt(event.target.closest('.catalog-item').dataset.id);
+            
+            // GANTI confirm() DENGAN showConfirmModal()
+            showConfirmModal(
+                'Delete Exercise?',                           // Judul
+                'Are you sure? This action cannot be undone.', // Teks
+                async () => {                                 // Fungsi Callback (Jalan kalau klik YES)
+                    try {
+                        // Panggil API Delete
+                        const response = await fetch(`${API_BASE_URL}/exercises/${id}`, { 
+                            method: 'DELETE',
+                            headers: { 'Accept': 'application/json' }
+                        });
+
+                        if (response.ok) {
+                            // 1. Update data lokal
+                            exerciseCatalog = exerciseCatalog.filter(ex => (ex.exercise_id || ex.id) !== id);
+                            
+                            // 2. Refresh tampilan
+                            populateCatalog(searchBar.value);
+
+                            // 3. Tampilkan Alert Sukses (Centang Emas)
+                            showCustomAlert("Deleted!", "The exercise has been removed.", "success");
+                        } else {
+                            showCustomAlert("Failed", "Could not delete the exercise.", "error");
+                        }
+                    } catch (e) { 
+                        console.error(e);
+                        showCustomAlert("Connection Error", "Check your backend server.", "error"); 
+                    }
+                }
+            );
+            return;
+        }
+
         const clickedItem = event.target.closest('.catalog-item');
         if (!clickedItem) return;
+        
         const exerciseId = parseInt(clickedItem.dataset.id);
         clickedItem.classList.toggle('selected');
-        if (selectedExercises.includes(exerciseId)) { selectedExercises = selectedExercises.filter(id => id !== exerciseId); }
-        else { selectedExercises.push(exerciseId); }
+        
+        if (selectedExercises.includes(exerciseId)) { 
+            selectedExercises = selectedExercises.filter(id => id !== exerciseId); 
+        } else { 
+            selectedExercises.push(exerciseId); 
+        }
         updateFabVisibility();
     });
+
     addSelectedBtn.addEventListener('click', () => {
         selectedExercises.forEach(id => {
             const exercise = exerciseCatalog.find(ex => (ex.exercise_id || ex.id) == id);
@@ -369,9 +563,9 @@ document.addEventListener('DOMContentLoaded', function() {
         saveWorkoutState();
     });
 
-    openCreateBtn.addEventListener('click', () => createExerciseModal.classList.add('active'));
+    openCreateBtn.addEventListener('click', openCreateModal); 
     cancelCreateBtn.addEventListener('click', () => createExerciseModal.classList.remove('active'));
-    saveExerciseBtn.addEventListener('click', createNewExercise);
+    saveExerciseBtn.addEventListener('click', handleSaveExercise);
 
     // INISIALISASI
     fetchExercises().then(() => { loadWorkoutState(); });

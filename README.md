@@ -9,7 +9,7 @@
 * **Frontend:** Vanilla JavaScript (ES6+), HTML5, CSS3.
 * **Backend:** Laravel 12 (PHP) [For API and routing].
 * **Database:** MySQL.
-* **Tools:** VS Code Live Server, Laragon/XAMPP (Preferably Laragon)
+* **Tools:** VS Code Live Server, Laragon
 
 ## Key Features
 

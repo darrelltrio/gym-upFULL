@@ -217,8 +217,8 @@ body {
     content: "";
     height: 20px;
     width: 20px;
-    left: 4px;
-    bottom: 3px; /* Penyesuaian posisi vertikal */
+    left: 3px;
+    bottom: 2px; /* Penyesuaian posisi vertikal */
     background-color: white;
     border-radius: 50%;
     transition: .4s;

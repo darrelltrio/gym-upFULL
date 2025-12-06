@@ -1,0 +1,182 @@
+:root {
+    --primary-gold: #FFB703;
+    --text-white: #FFFFFF;
+    --text-gray: #A0A0A0;
+    --background-dark: #121212;
+    --card-background: #1E1E1E;
+    --input-bg: #2C2C2C;
+    --input-border: #444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: var(--background-dark);
+    color: var(--text-white);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Container Kartu Auth */
+.auth-container {
+    background-color: var(--card-background);
+    width: 100%;
+    max-width: 450px;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid #333;
+    animation: slideUp 0.5s ease-out;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-header h1 {
+    font-size: 2rem;
+    color: var(--primary-gold);
+    margin-bottom: 10px;
+}
+
+.auth-header p {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-gray);
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    color: var(--text-white);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.form-input:focus {
+    border-color: var(--primary-gold);
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Tombol Utama */
+.auth-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: var(--primary-gold);
+    color: var(--background-dark);
+    font-weight: bold;
+    font-size: 1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+.auth-btn:hover {
+    background-color: #e0a103;
+}
+
+.auth-btn:active {
+    transform: scale(0.98);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 0.9rem;
+    color: var(--text-gray);
+}
+
+.auth-link {
+    color: var(--primary-gold);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+/* Custom Alert Overlay (Sama seperti Workout) */
+.alert-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+.alert-box {
+    background: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    width: 90%; max-width: 350px;
+    border: 1px solid var(--primary-gold);
+}
+.alert-btn {
+    background: var(--primary-gold);
+    border: none; padding: 10px 25px;
+    border-radius: 5px; font-weight: bold;
+    margin-top: 20px; cursor: pointer;
+}
+
+/* Media Query untuk HP */
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 25px;
+        border: none; /* Hilangkan border di layar kecil agar lebih bersih */
+        background-color: transparent; /* Menyatu dengan background body */
+        box-shadow: none;
+    }
+    
+    body {
+        /* Di HP, kita buat background sedikit lebih terang di area form atau biarkan gelap total */
+        align-items: flex-start; /* Form mulai dari atas, bukan tengah vertikal */
+        padding-top: 40px;
+    }
+
+    .form-row {
+        flex-direction: column; /* Input bersebelahan jadi atas-bawah di HP kecil */
+        gap: 0;
+    }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

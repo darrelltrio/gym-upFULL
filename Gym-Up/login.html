@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gym Up</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>GYM-UP</h1>
+            <p>Welcome back! Ready to train?</p>
+        </div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" id="login-btn" class="auth-btn">Log In</button>
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account? <a href="register.html" class="auth-link">Sign Up</a>
+        </div>
+    </div>
+
+    <div id="custom-alert" class="alert-overlay">
+        <div class="alert-box">
+            <h3 id="alert-title" style="color: var(--primary-gold); margin-bottom: 10px;">Alert</h3>
+            <p id="alert-message" style="color: #ccc; font-size: 0.9rem;">Message here</p>
+            <button class="alert-btn" onclick="document.getElementById('custom-alert').style.display='none'">OK</button>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>

@@ -751,3 +751,90 @@ body {
     color: var(--background-dark);
     font-family: 'Poppins', sans-serif;
 }
+
+/* ========================================= */
+/* MEDIA QUERY: BODY STATS RESPONSIVE     */
+/* ========================================= */
+@media (max-width: 600px) {
+    /* Membuat input bersebelahan (Age/Gender) jadi bertumpuk di HP */
+    .form-row-profile {
+        grid-template-columns: 1fr; /* 1 Kolom ke bawah */
+        gap: 15px;
+    }
+
+    /* Sedikit merapikan padding di layar kecil */
+    .profile-form {
+        padding: 0 5px;
+    }
+}
+
+/* ========================================= */
+/* HIASAN MODAL ALERT (SUCCESS ICON)      */
+/* ========================================= */
+
+/* Warna & Animasi untuk Ikon Sukses (Centang) */
+.icon-success {
+    color: var(--primary-gold);
+    display: block;
+    margin-bottom: 15px;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Warna & Animasi untuk Ikon Error (Silang/Tanda Seru) */
+.icon-error {
+    color: #FF4D4D; /* Merah */
+    display: block;
+    margin-bottom: 15px;
+    animation: shake 0.4s ease-in-out;
+}
+
+/* Animasi Pop-In (Muncul Membal) */
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Animasi Shake (Getar untuk Error) */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* ========================================= */
+/* FIX: LAYAR SEMPIT */
+/* ========================================= */
+@media (max-width: 380px) {
+    
+    /* 1. Tipiskan padding kartu agar ruang konten lebih lega */
+    .action-card {
+        padding: 15px 10px !important; /* Paksa padding kecil */
+        gap: 5px;
+    }
+
+    /* 2. Kecilkan Judul "Ready to Train?" */
+    .action-content h3 {
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+
+    /* 3. Kecilkan Tombol & Paddingnya */
+    .cta-button {
+        padding: 10px 15px; /* Lebih ramping */
+        font-size: 0.85rem; /* Font lebih kecil */
+        white-space: nowrap; /* Cegah teks turun baris (overlap) */
+        width: 100%; /* Pastikan tombol mengisi ruang yang ada */
+    }
+
+    /* 4. Kecilkan Dekorasi Bar Emas agar tidak makan tempat */
+    .deco-bar {
+        width: 4px; /* Setengah dari ukuran asli */
+        margin: 0 2px;
+    }
+    
+    /* Atur tinggi bar dekorasi versi mini */
+    .deco-bar:nth-child(1) { height: 15px; }
+    .deco-bar:nth-child(2) { height: 25px; }
+    .deco-bar:nth-child(3) { height: 15px; }
+}

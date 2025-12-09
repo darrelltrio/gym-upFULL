@@ -39,6 +39,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const inputHeight = document.getElementById('user-height');
     const inputWeight = document.getElementById('user-weight');
     const inputActivity = document.getElementById('user-activity');
+
+    // FUNGSI HELPER: NOTIFIKASI KEREN
+    const notifModal = document.getElementById('notification-modal');
+    const notifTitle = document.getElementById('notif-title');
+    const notifText = document.getElementById('notif-text');
+    const notifIcon = document.getElementById('notif-icon');
+    const notifOkBtn = document.getElementById('notif-ok-btn');
     
     // Containers
     const questListContainer = document.getElementById('quest-list-container');
@@ -49,6 +56,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // =======================================================
     // BAGIAN 2: FUNGSI UTAMA (DATA ASLI)
     // =======================================================
+
+    function showNotification(title, message, type = 'success') {
+        if(notifModal) {
+            notifTitle.textContent = title;
+            notifText.textContent = message;
+            
+            // Logika Ikon
+            if (type === 'success') {
+                notifIcon.innerHTML = '✓'; // Simbol Centang
+                notifIcon.className = 'icon-success'; // Class CSS Emas
+            } else {
+                notifIcon.innerHTML = '⚠'; // Simbol Warning
+                notifIcon.className = 'icon-error'; // Class CSS Merah
+            }
+
+            notifModal.classList.add('active');
+        } else {
+            alert(message);
+        }
+    }
+
+    // Listener Tombol OK (Tutup Modal)
+    if (notifOkBtn) {
+        notifOkBtn.addEventListener('click', () => {
+            notifModal.classList.remove('active');
+        });
+    }
 
     // 1. Tampilkan Data User ke UI
     function renderUserData(user) {
@@ -129,6 +163,38 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'login.html';
     }
 
+    // 4. Update Profile ke Server (Body Stats / Goal)
+    async function updateUserProfile(dataToUpdate) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/user/profile`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(dataToUpdate)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Update data di LocalStorage & UI
+                localStorage.setItem('user_data', JSON.stringify(result.user));
+                userData = result.user; // Update variabel global
+                renderUserData(userData); // Refresh tampilan
+                
+                // Tampilkan notifikasi (alert sementara)
+                showNotification("Profile updated successfully!");
+            } else {
+                showNotification("Failed: " + (result.message || "Unknown error"));
+            }
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            showNotification("Connection error. Check backend.");
+        }
+    }
+
     // =======================================================
     // BAGIAN 3: PLACEHOLDER FITUR LAIN (SEMENTARA)
     // =======================================================
@@ -191,6 +257,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if(openQuestsBtn) openQuestsBtn.addEventListener('click', () => questsModal.classList.add('active'));
     if(closeQuestsBtn) closeQuestsBtn.addEventListener('click', () => questsModal.classList.remove('active'));
+
+    // --- LOGIKA TOMBOL GOAL (Update Langsung saat diklik) ---
+    const goalButtons = document.querySelectorAll('.goal-btn');
+    goalButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Ambil text tombol, ubah jadi lowercase (Bulk -> bulk)
+            const selectedGoal = this.textContent.trim().toLowerCase();
+            
+            // Panggil fungsi update khusus field 'goal'
+            updateUserProfile({ goal: selectedGoal });
+        });
+    });
+
+    // --- LOGIKA TOMBOL SAVE PROFILE (Body Stats) ---
+    const saveProfileBtn = document.getElementById('save-profile-btn');
+    if(saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', function() {
+            // Efek Loading Tombol
+            const btnOriginalText = this.textContent;
+            this.textContent = "Saving...";
+            this.disabled = true;
+
+            // Kumpulkan data dari input form
+            const statsData = {
+                age: document.getElementById('user-age').value,
+                gender: document.getElementById('user-gender').value,
+                height_cm: document.getElementById('user-height').value, // Sesuaikan name kolom DB
+                weight_kg: document.getElementById('user-weight').value, // Sesuaikan name kolom DB
+                activity_level: document.getElementById('user-activity').value 
+            };
+
+            // Kirim ke backend
+            updateUserProfile(statsData).finally(() => {
+                // Kembalikan tombol seperti semula
+                this.textContent = btnOriginalText;
+                this.disabled = false;
+            });
+        });
+    }
 
 
     // =======================================================

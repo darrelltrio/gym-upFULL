@@ -2,23 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Exercise extends Model
 {
-    // Beritahu Laravel nama tabel kita (karena tidak pakai standar plural 's')
-    protected $table = 'exercises';
-    
-    // Beritahu Laravel nama primary key kita
-    protected $primaryKey = 'exercise_id';
+    use HasFactory;
 
-    // Matikan timestamps (karena di tabel exercises kita tidak buat kolom created_at/updated_at)
-    public $timestamps = false;
+    protected $primaryKey = 'exercise_id'; // Sesuai database kita
+    public $timestamps = false; // Karena tabel exercises tidak punya created_at/updated_at default
 
-    // Kolom yang boleh diisi (untuk fitur Create nanti)
     protected $fillable = [
         'name',
         'muscle_group',
-        'equipment'
+        'equipment',
+        'created_by' // <--- WAJIB DITAMBAHKAN
     ];
 }

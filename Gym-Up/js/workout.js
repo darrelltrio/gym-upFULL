@@ -244,11 +244,37 @@ document.addEventListener('DOMContentLoaded', function() {
     // FUNGSI API & KATALOG (DIPERBAIKI UNTUK DEBUGGING)
     async function fetchExercises() {
         try {
+            // 1. Ambil Token dari penyimpanan browser
+            const token = localStorage.getItem('auth_token');
+            
+            // (Opsional) Jika tidak ada token, lempar ke login
+            if (!token) {
+                console.warn("No token found, redirecting to login...");
+                window.location.href = 'login.html';
+                return;
+            }
+
             console.log("Menghubungi API:", `${API_BASE_URL}/exercises`);
-            const response = await fetch(`${API_BASE_URL}/exercises`);
+            
+            // 2. Tambahkan Header Authorization
+            const response = await fetch(`${API_BASE_URL}/exercises`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // <--- INI KUNCINYA
+                    'Accept': 'application/json'
+                }
+            });
             
             // Cek apakah server memberikan respon OK (status 200)
             if (!response.ok) {
+                // Jika 401 Unauthorized (Token Kedaluwarsa/Salah)
+                if (response.status === 401) {
+                    alert("Sesi habis. Silakan login kembali.");
+                    localStorage.removeItem('auth_token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
                 const text = await response.text();
                 throw new Error(`Server Error: ${response.status} ${text}`);
             }
@@ -263,57 +289,96 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error("Gagal mengambil data latihan:", error);
-            catalogList.innerHTML = `<p style='color:red; text-align:center; padding:20px;'>
-                <b>Connection Failed!</b><br>
-                Make sure backend is active.<br>
-                <small>${error.message}</small>
-            </p>`;
+            const listEl = document.getElementById('catalog-list'); // Pastikan ID ini benar
+            if(listEl) {
+                listEl.innerHTML = `<p style='color:red; text-align:center; padding:20px;'>
+                    <b>Gagal Memuat Data!</b><br>
+                    <small>${error.message}</small>
+                </p>`;
+            }
         }
     }
 
+    // GANTI FUNGSI PENYIMPANAN ANDA DENGAN INI:
+    // GANTI FUNGSI SIMPAN ANDA DENGAN INI:
     async function handleSaveExercise() {
         const name = document.getElementById('new-exercise-name').value;
         const muscle = document.getElementById('new-exercise-muscle').value;
         const equipment = document.getElementById('new-exercise-equipment').value;
-
-        if (!name) { showCustomAlert("Failed", "Please enter an exercise name.", "error"); return; }
+        
+        if (!name) { alert("Please enter an exercise name."); return; }
+        
+        // 1. Ambil Token (Wajib)
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            alert("Session expired. Please login again.");
+            window.location.href = 'login.html';
+            return;
+        }
 
         const originalText = saveExerciseBtn.textContent;
+        // Ubah teks tombol sesuai status
         saveExerciseBtn.textContent = isEditing ? "Updating..." : "Saving...";
         saveExerciseBtn.disabled = true;
 
         try {
-            let url = `${API_BASE_URL}/exercises`;
-            let method = 'POST';
+            // 2. Tentukan URL & Method secara Dinamis
+            // Gunakan variabel API_BASE_URL jika ada, atau fallback manual
+            let baseUrl = typeof API_BASE_URL !== 'undefined' ? `${API_BASE_URL}/exercises` : 'http://127.0.0.1:8000/api/exercises';
+            let url = baseUrl;
+            let method = 'POST'; // Default: Create
 
+            // JIKA SEDANG EDIT: Ubah URL dan Method
             if (isEditing && editingExerciseId) {
-                url = `${API_BASE_URL}/exercises/${editingExerciseId}`;
-                method = 'PUT';
+                url = `${baseUrl}/${editingExerciseId}`; // Tambah ID di ujung URL
+                method = 'PUT'; // Ubah method jadi Update
             }
+
+            console.log(`Sending ${method} to ${url}`); // Debugging di Console
 
             const response = await fetch(url, {
                 method: method,
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ name: name, muscle_group: muscle, equipment: equipment })
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}` // <--- Token disematkan
+                },
+                body: JSON.stringify({ 
+                    name: name, 
+                    muscle_group: muscle, 
+                    equipment: equipment 
+                })
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                showCustomAlert(
-                    isEditing ? "Update Success!" : "Created Successfully!", 
-                    isEditing ? `Exercise "${name}" has been updated.` : `Exercise "${name}" has been added to catalog.`, 
-                    "success"
-                );
+                // Tampilkan Pesan Sukses yang Sesuai
+                const msg = isEditing ? "Exercise updated successfully!" : "Exercise created successfully!";
+                
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert("Success!", msg, "success");
+                } else {
+                    alert(msg);
+                }
+                
                 createExerciseModal.classList.remove('active');
+                document.getElementById('new-exercise-name').value = ""; // Reset form
+                
+                // Refresh data katalog
                 await fetchExercises(); 
-                populateCatalog(searchBar.value);
             } else {
-                showCustomAlert("Oops!", result.message || "Failed to save exercise", "error");
+                // Tampilkan Error dari Backend
+                const msg = result.message || "Operation failed";
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert("Failed", msg, "error");
+                } else {
+                    alert("Error: " + msg);
+                }
             }
         } catch (error) {
             console.error(error);
-            showCustomAlert("Connection Error", "Cannot connect to the backend server.", "error");
+            alert("Connection error! Check backend.");
         } finally {
             saveExerciseBtn.textContent = originalText;
             saveExerciseBtn.disabled = false;
@@ -502,33 +567,64 @@ document.addEventListener('DOMContentLoaded', function() {
             event.stopPropagation(); // Stop agar tidak memilih item
             const id = parseInt(event.target.closest('.catalog-item').dataset.id);
             
-            // GANTI confirm() DENGAN showConfirmModal()
+            // 1. Ambil Token (Wajib)
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert("Access Denied", "Please log in to delete exercises.", "error");
+                } else {
+                    alert("Please log in first.");
+                }
+                return;
+            }
+
+            // 2. Tampilkan Modal Konfirmasi
             showConfirmModal(
-                'Delete Exercise?',                           // Judul
-                'Are you sure? This action cannot be undone.', // Teks
-                async () => {                                 // Fungsi Callback (Jalan kalau klik YES)
+                'Delete Exercise?',                           
+                'Are you sure? This action cannot be undone.', 
+                async () => {                                 
                     try {
-                        // Panggil API Delete
-                        const response = await fetch(`${API_BASE_URL}/exercises/${id}`, { 
+                        // Gunakan API_BASE_URL yang benar
+                        const url = typeof API_BASE_URL !== 'undefined' ? `${API_BASE_URL}/exercises/${id}` : `http://127.0.0.1:8000/api/exercises/${id}`;
+
+                        // 3. Panggil API Delete dengan Token
+                        const response = await fetch(url, { 
                             method: 'DELETE',
-                            headers: { 'Accept': 'application/json' }
+                            headers: { 
+                                'Accept': 'application/json',
+                                'Authorization': `Bearer ${token}` // <--- INI KUNCINYA
+                            }
                         });
 
+                        // 4. Cek Hasil
                         if (response.ok) {
-                            // 1. Update data lokal
+                            // Sukses: Hapus dari UI & Array Lokal
                             exerciseCatalog = exerciseCatalog.filter(ex => (ex.exercise_id || ex.id) !== id);
-                            
-                            // 2. Refresh tampilan
                             populateCatalog(searchBar.value);
 
-                            // 3. Tampilkan Alert Sukses (Centang Emas)
-                            showCustomAlert("Deleted!", "The exercise has been removed.", "success");
+                            if (typeof showCustomAlert === 'function') {
+                                showCustomAlert("Deleted!", "The exercise has been removed.", "success");
+                            } else {
+                                alert("Deleted successfully.");
+                            }
                         } else {
-                            showCustomAlert("Failed", "Could not delete the exercise.", "error");
+                            // Gagal (Misal: Coba hapus latihan Global)
+                            const result = await response.json();
+                            const msg = result.message || "Could not delete exercise.";
+                            
+                            if (typeof showCustomAlert === 'function') {
+                                showCustomAlert("Failed", msg, "error"); // Tampilkan pesan error dari Backend
+                            } else {
+                                alert(msg);
+                            }
                         }
                     } catch (e) { 
                         console.error(e);
-                        showCustomAlert("Connection Error", "Check your backend server.", "error"); 
+                        if (typeof showCustomAlert === 'function') {
+                            showCustomAlert("Connection Error", "Check your internet or server.", "error"); 
+                        } else {
+                            alert("Connection error.");
+                        }
                     }
                 }
             );

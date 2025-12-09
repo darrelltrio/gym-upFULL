@@ -8,24 +8,37 @@ use Illuminate\Http\Request;
 
 class ExerciseController extends Controller
 {
-    // GET: Ambil semua latihan
-    public function index()
-{
-    // Pastikan ada return response()->json(...)
-    $exercises = Exercise::all();
-    return response()->json($exercises); 
-}
+    // GET: Tampilkan Katalog (Global + Punya Saya)
+    public function index(Request $request)
+    {
+        // Ambil User ID dari Token yang login
+        $userId = $request->user()->user_id;
 
-    // POST: Tambah latihan baru
+        // Logika: Ambil yang Global (NULL) ATAU punya user ini
+        $exercises = Exercise::whereNull('created_by')
+                    ->orWhere('created_by', $userId)
+                    ->get();
+
+        return response()->json($exercises);
+    }
+
+    // POST: Tambah Latihan Baru (Pasti punya Saya)
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255|unique:exercises',
+            // Validasi nama unik hanya untuk latihan milik user ini (agar tidak bentrok dengan global)
+            'name' => 'required|string|max:255', 
             'muscle_group' => 'required|string|max:100',
             'equipment' => 'required|string|max:100',
         ]);
 
-        $exercise = Exercise::create($validatedData);
+        // Simpan dengan ID pemilik
+        $exercise = Exercise::create([
+            'name' => $validatedData['name'],
+            'muscle_group' => $validatedData['muscle_group'],
+            'equipment' => $validatedData['equipment'],
+            'created_by' => $request->user()->user_id // <--- KUNCI PRIVASI
+        ]);
 
         return response()->json([
             'message' => 'Exercise created successfully',
@@ -33,7 +46,7 @@ class ExerciseController extends Controller
         ], 201);
     }
 
-    // PUT: Update latihan (BARU)
+    // PUT: Edit Latihan (Hanya milik sendiri)
     public function update(Request $request, $id)
     {
         $exercise = Exercise::find($id);
@@ -42,9 +55,13 @@ class ExerciseController extends Controller
             return response()->json(['message' => 'Exercise not found'], 404);
         }
 
-        // Validasi: Nama unik, tapi boleh sama dengan namanya sendiri saat ini
+        // CEK KEPEMILIKAN: Jangan izinkan edit jika Global atau punya orang lain
+        if ($exercise->created_by !== $request->user()->user_id) {
+            return response()->json(['message' => 'Unauthorized: You cannot edit global exercises.'], 403);
+        }
+
         $validatedData = $request->validate([
-            'name' => 'sometimes|required|string|max:255|unique:exercises,name,' . $id . ',exercise_id',
+            'name' => 'sometimes|required|string|max:255',
             'muscle_group' => 'sometimes|required|string|max:100',
             'equipment' => 'sometimes|required|string|max:100',
         ]);
@@ -57,14 +74,22 @@ class ExerciseController extends Controller
         ]);
     }
 
-    // DELETE: Hapus latihan (BARU)
-    public function destroy($id)
+    // DELETE: Hapus Latihan (Hanya milik sendiri)
+    public function destroy(Request $request, $id)
     {
         $exercise = Exercise::find($id);
+
         if (!$exercise) {
             return response()->json(['message' => 'Exercise not found'], 404);
         }
+
+        // CEK KEPEMILIKAN: Jangan izinkan hapus jika Global
+        if ($exercise->created_by !== $request->user()->user_id) {
+            return response()->json(['message' => 'Unauthorized: You cannot delete global exercises.'], 403);
+        }
+
         $exercise->delete();
+
         return response()->json(['message' => 'Exercise deleted successfully']);
     }
 }

@@ -95,4 +95,28 @@ class AuthController extends Controller
     {
         return response()->json($request->user());
     }
+
+    // 5. UPDATE PROFILE (Body Stats & Goal)
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        // Gunakan 'sometimes' agar user bisa update sebagian data saja
+        $validatedData = $request->validate([
+            'age' => 'sometimes|integer|min:10|max:100',
+            'gender' => 'sometimes|in:male,female',
+            'height_cm' => 'sometimes|integer|min:100|max:250',
+            'weight_kg' => 'sometimes|numeric|min:30|max:300',
+            'activity_level' => 'sometimes|in:sedentary,light,moderate,active,very_active',
+            'goal' => 'sometimes|in:bulk,cut,maintain',
+        ]);
+
+        // Update data user di database
+        $user->update($validatedData);
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'user' => $user, // Kembalikan data terbaru agar frontend bisa sinkron
+        ]);
+    }
 }

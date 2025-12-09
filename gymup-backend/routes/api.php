@@ -24,5 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/exercises', [ExerciseController::class, 'store']);
     Route::put('/exercises/{id}', [ExerciseController::class, 'update']);
     Route::delete('/exercises/{id}', [ExerciseController::class, 'destroy']);
+
+    //Fitur Profile
+    Route::put('/user/profile', [AuthController::class, 'updateProfile']);
     
 });

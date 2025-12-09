@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ExerciseController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\NutritionController;
 
 // ==========================
 // PUBLIC ROUTES (Register & Login)
@@ -28,4 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //Fitur Profile
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
     
+    //Nutrition
+    Route::get('/nutrition/recommendations', [NutritionController::class, 'getRecommendations']);
+    Route::get('/nutrition/meal-ideas', [NutritionController::class, 'getMealIdeas']);
 });

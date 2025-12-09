@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nutrition Guide - Gym Up</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <link rel="stylesheet" href="css/style.css"> 
     <link rel="stylesheet" href="css/nutrition.css">
 </head>
@@ -15,34 +18,52 @@
     <header class="page-header">
         <a href="index.html" class="back-btn">←</a>
         <h1>Nutrition Guide</h1>
-        <div></div> </header>
+        <div style="width: 24px;"></div> </header>
 
     <main class="nutrition-content">
         <div class="nutrition-grid">
+            
             <div class="card summary-card nutrition-header-card">
-                <p id="nutrition-goal-status" class="goal-status"></p>
-                <h2 id="nutrition-goal-phase"></h2>
+                <p id="nutrition-goal-status" class="goal-status">Loading...</p>
+                <h2 id="nutrition-goal-phase">--</h2>
                 <div class="calorie-display">
-                    <span id="nutrition-calorie-value" class="calorie-value"></span>
+                    <span id="nutrition-calorie-value" class="calorie-value">0</span>
                     <span class="calorie-label">rec. daily calories</span>
                 </div>
             </div>
+
             <div class="card macros-card">
-                <h3>Macronutrients Target</h3>
-                <div class="macro-item"><div class="macro-labels"><span>Protein</span><span id="macro-protein"></span></div><div class="progress-bar-bg"><div id="macro-protein-bar" class="progress-bar-fg"></div></div></div>
-                <div class="macro-item"><div class="macro-labels"><span>Carbs</span><span id="macro-carbs"></span></div><div class="progress-bar-bg"><div id="macro-carbs-bar" class="progress-bar-fg"></div></div></div>
-                <div class="macro-item"><div class="macro-labels"><span>Fat</span><span id="macro-fat"></span></div><div class="progress-bar-bg"><div id="macro-fat-bar" class="progress-bar-fg"></div></div></div>
+                <h3>Daily Targets</h3>
+                <div class="macros-clean-grid">
+                    
+                    <div class="macro-box">
+                        <div class="macro-icon"><i class="fas fa-drumstick-bite"></i></div>
+                        <span class="macro-val" id="macro-protein">--</span>
+                        <span class="macro-lbl">Protein</span>
+                    </div>
+
+                    <div class="macro-box">
+                        <div class="macro-icon"><i class="fas fa-bread-slice"></i></div>
+                        <span class="macro-val" id="macro-carbs">--</span>
+                        <span class="macro-lbl">Carbs</span>
+                    </div>
+
+                    <div class="macro-box">
+                        <div class="macro-icon"><i class="fas fa-cheese"></i></div>
+                        <span class="macro-val" id="macro-fat">--</span>
+                        <span class="macro-lbl">Fat</span>
+                    </div>
+
+                </div>
             </div>
-            <h3 class="meals-title">Meal Ideas (Placeholders)</h3>
-            <div class="meal-ideas-container">
-                <div class="meal-card"><h4>Breakfast</h4><ul><li>Oatmeal <span>(150 cal)</span></li><li>2 Boiled Eggs <span>(140 cal)</span></li></ul></div>
-                <div class="meal-card"><h4>Lunch</h4><ul><li>Chicken Breast <span>(250 cal)</span></li><li>Brown Rice <span>(200 cal)</span></li></ul></div>
-                <div class="meal-card"><h4>Dinner</h4><ul><li>Salmon Fillet <span>(300 cal)</span></li><li>Sweet Potato <span>(180 cal)</span></li></ul></div>
+
+            <h3 class="meals-title">Recommended Meals</h3>
+            <div id="meal-ideas-container" class="meal-ideas-container">
+                <p style="color:#888; text-align:center; grid-column: 1/-1;">Loading recommendations...</p>
             </div>
+
         </div>
     </main>
-
-    
 
     <script src="js/nutrition.js"></script>
 </body>

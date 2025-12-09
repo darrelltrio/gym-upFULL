@@ -1,109 +1,67 @@
-* {
-    -webkit-tap-highlight-color: transparent;
-}
+/* --- nutrition.css --- */
 
-body { 
-    padding: 20px; 
-}
+/* Reset dasar */
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+body { padding: 20px; font-family: 'Poppins', sans-serif; }
 
-/* =========================
-   Page Header
-========================= */
+/* Header */
 .page-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 30px; 
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; 
+}
+.page-header h1 { font-size: 1.5rem; font-weight: 600; color: #fff; margin: 0; }
+.back-btn { font-size: 1.5rem; text-decoration: none; color: white; }
+
+/* Grid Utama */
+.nutrition-grid { display: grid; gap: 20px; }
+
+/* Card Style Global */
+.card {
+    background-color: var(--card-background, #1e1e1e); 
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
 
-.page-header h1 { 
-    font-size: 1.5rem; 
-    font-weight: 600; 
-}
-
-.back-btn { 
-    font-size: 1.5rem; 
-    text-decoration: none; 
-    color: white; 
-}
-
-/* =========================
-   Nutrition Section
-========================= */
-.nutrition-grid { 
-    display: grid; 
-    gap: 20px; 
-}
-
-.nutrition-header-card { 
-    text-align: center; 
-    padding: 30px; 
-}
-
-.goal-status { 
-    font-size: 1rem; 
-    color: var(--background-light); 
-    opacity: 0.8; 
-}
-
+/* 1. Summary Card */
+.nutrition-header-card { text-align: center; }
+.goal-status { font-size: 0.9rem; color: #aaa; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;}
 .nutrition-header-card h2 { 
-    font-size: 1.8rem; 
-    font-weight: 700; 
-    color: var(--primary-gold); 
-    margin-bottom: 15px; 
+    font-size: 1.8rem; font-weight: 700; color: var(--primary-gold, #c5a059); margin: 0 0 20px 0; 
 }
-
 .calorie-display { 
-    display: inline-block; 
-    background-color: rgba(0, 0, 0, 0.2); 
-    padding: 10px 20px; 
-    border-radius: 10px; 
+    display: inline-block; background-color: rgba(0, 0, 0, 0.3); padding: 15px 30px; border-radius: 12px; 
+    border: 1px solid #333;
+}
+.calorie-value { display: block; font-size: 2.5rem; font-weight: 700; color: #fff; line-height: 1;}
+.calorie-label { display: block; font-size: 0.8rem; color: #bbb; margin-top: 5px; }
+
+/* 2. Macros Section */
+.macros-card h3 { text-align: center; font-weight: 600; margin-bottom: 25px; color: #fff; font-size: 1.1rem;}
+
+.macros-clean-grid {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
 }
 
-.calorie-value { 
-    display: block; 
-    font-size: 2.5rem; 
-    font-weight: 700; 
-    color: var(--text-white); 
+.macro-box {
+    flex: 1;
+    background-color: #121212; 
+    border-radius: 10px;
+    padding: 15px 10px;
+    text-align: center;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.calorie-label { 
-    display: block; 
-    font-size: 0.8rem; 
-    color: #eee; 
-}
+.macro-icon { color: var(--primary-gold, #c5a059); font-size: 1.2rem; margin-bottom: 8px; }
+.macro-val { font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.macro-lbl { font-size: 0.75rem; color: #888; text-transform: uppercase; }
 
-/* =========================
-   Macros Section
-========================= */
-.macros-card h3 { 
-    text-align: center; 
-    font-weight: 600; 
-    margin-bottom: 20px; 
-}
-
-.macro-item { 
-    margin-bottom: 15px; 
-}
-
-.macro-item:last-child { 
-    margin-bottom: 0; 
-}
-
-.macro-labels { 
-    display: flex; 
-    justify-content: space-between; 
-    font-size: 0.9rem; 
-    margin-bottom: 5px; 
-}
-
-/* =========================
-   Meals Section
-========================= */
-.meals-title { 
-    margin-top: 20px; 
-    margin-bottom: 10px; 
-}
+/* 3. Meals Section */
+.meals-title { margin-top: 10px; margin-bottom: 15px; color: #fff; font-size: 1.2rem; }
 
 .meal-ideas-container { 
     display: grid; 
@@ -111,59 +69,56 @@ body {
     gap: 15px; 
 }
 
+/* Style Meal Card Baru */
 .meal-card { 
-    background-color: var(--card-background); 
-    padding: 20px; 
-    border-radius: 10px; 
-    border-left: 3px solid var(--primary-gold); 
+    background-color: var(--card-background, #1e1e1e); 
+    padding: 15px 20px; 
+    border-radius: 12px; 
+    border-left: 4px solid var(--primary-gold, #c5a059); 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-.meal-card h4 { 
+.meal-info h4 { margin: 0 0 3px 0; color: #fff; font-size: 1rem; }
+.meal-cat { color: #888; font-size: 0.8rem; }
+
+/* Kotak Stats Kanan (Kalori & Protein) */
+.meal-stats-box {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.meal-cals { 
     font-weight: 600; 
-    margin-bottom: 15px; 
+    color: var(--primary-gold, #c5a059); 
+    font-size: 0.95rem;
 }
 
-.meal-card ul { 
-    list-style: none; 
-    padding: 0; 
+.meal-prot {
+    font-size: 0.85rem;
+    color: #ccc; /* Warna abu terang untuk protein */
 }
 
-.meal-card li { 
-    display: flex; 
-    justify-content: space-between; 
-    padding: 8px 0; 
-    border-bottom: 1px solid #333; 
+.meal-prot i {
+    font-size: 0.75rem;
+    margin-right: 3px;
+    color: #888;
 }
 
-.meal-card li:last-child { 
-    border-bottom: none; 
+.serving-size {
+    font-size: 0.80rem;
 }
 
-.meal-card li span { 
-    color: #a0a0a0; 
+.serving-size i {
+    font-size: 0.75rem;
+    margin-right: 3px;
+    color: #888;
 }
-
-/* =========================
-   Progress Bars
-========================= */
-.progress-bar-bg { 
-    background-color: #333; 
-    border-radius: 5px; 
-    height: 10px; 
-    width: 100%; 
-}
-
-.progress-bar-fg { 
-    background-color: var(--primary-gold); 
-    height: 100%; 
-    border-radius: 5px; 
-}
-
-/* =========================
-   Responsive Design
-========================= */
+/* Responsive */
 @media (min-width: 768px) { 
-    .meal-ideas-container { 
-        grid-template-columns: 1fr 1fr 1fr; 
-    } 
+    .meal-ideas-container { grid-template-columns: repeat(3, 1fr); } 
 }

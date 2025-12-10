@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ExerciseController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\NutritionController;
+use App\Http\Controllers\API\WorkoutController;
 
 // ==========================
 // PUBLIC ROUTES (Register & Login)
@@ -32,4 +33,17 @@ Route::middleware('auth:sanctum')->group(function () {
     //Nutrition
     Route::get('/nutrition/recommendations', [NutritionController::class, 'getRecommendations']);
     Route::get('/nutrition/meal-ideas', [NutritionController::class, 'getMealIdeas']);
+
+    // --- WORKOUT ROUTES ---
+    
+    // 1. Log Workout (POST)
+    // Frontend mengirim JSON data latihan ke sini
+    Route::post('/workouts', [WorkoutController::class, 'store']);
+
+    // 2. Workout History (GET)
+    // Frontend mengambil daftar riwayat untuk halaman 'History'
+    Route::get('/workouts/history', [WorkoutController::class, 'history']);
+
+    // 3. Session Detail (GET) - Opsional
+    Route::get('/workouts/{id}', [WorkoutController::class, 'show']);
 });

@@ -197,9 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmModal.classList.remove('active');
         };
     }
-
-    // --- FUNGSI HELPER MODAL CREATE/EDIT (YANG SEBELUMNYA HILANG) ---
-    // --- FUNGSI HELPER MODAL CREATE/EDIT (DIPERBAIKI) ---
+    // --- FUNGSI HELPER MODAL CREATE/EDIT
     function openCreateModal() {
         isEditing = false;
         editingExerciseId = null;
@@ -299,8 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // GANTI FUNGSI PENYIMPANAN ANDA DENGAN INI:
-    // GANTI FUNGSI SIMPAN ANDA DENGAN INI:
+    // Handle Save Exercise
     async function handleSaveExercise() {
         const name = document.getElementById('new-exercise-name').value;
         const muscle = document.getElementById('new-exercise-muscle').value;
@@ -323,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // 2. Tentukan URL & Method secara Dinamis
-            // Gunakan variabel API_BASE_URL jika ada, atau fallback manual
+            // Gunakan variabel API_BASE_URL, atau fallback manual
             let baseUrl = typeof API_BASE_URL !== 'undefined' ? `${API_BASE_URL}/exercises` : 'http://127.0.0.1:8000/api/exercises';
             let url = baseUrl;
             let method = 'POST'; // Default: Create
@@ -448,6 +445,97 @@ document.addEventListener('DOMContentLoaded', function() {
         return newCard;
     }
 
+    // =======================================================
+    // FUNGSI BARU: SIMPAN WORKOUT KE DATABASE
+    // =======================================================
+    async function saveLoggedWorkout() {
+        // 1. Ambil Token
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            alert("Session expired. Please login.");
+            return false;
+        }
+
+        // 2. Hitung Durasi (dalam detik)
+        const durationSeconds = Math.floor((Date.now() - startTime) / 1000);
+
+        // 3. Kumpulkan Data Latihan dari DOM (HTML)
+        const exerciseCards = document.querySelectorAll('.exercise-card');
+        const exercisesPayload = [];
+
+        exerciseCards.forEach(card => {
+            const exerciseId = parseInt(card.dataset.exerciseId);
+            const setRows = card.querySelectorAll('.log-row');
+            const setsData = [];
+
+            setRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const kgVal = parseFloat(inputs[0].value) || 0;
+                const repsVal = parseInt(inputs[1].value) || 0;
+                
+                // Opsional: Hanya simpan set yang sudah dicentang (completed)
+                // atau simpan semua yang reps-nya > 0. 
+                // Di sini kita simpan semua set yang valid (reps > 0)
+                if (repsVal > 0) {
+                    setsData.push({
+                        weight_kg: kgVal,
+                        reps: repsVal
+                    });
+                }
+            });
+
+            // Hanya masukkan latihan jika ada set yang valid
+            if (setsData.length > 0) {
+                exercisesPayload.push({
+                    exercise_id: exerciseId,
+                    sets: setsData
+                });
+            }
+        });
+
+        // Validasi: Jangan simpan jika kosong
+        if (exercisesPayload.length === 0) {
+            showCustomAlert("Empty Workout", "Please log at least one set.", "error");
+            return false;
+        }
+
+        // 4. Susun Payload Akhir
+        const payload = {
+            duration_seconds: durationSeconds,
+            performed_at: new Date().toISOString().slice(0, 19).replace('T', ' '), // Format YYYY-MM-DD HH:MM:SS
+            exercises: exercisesPayload
+        };
+
+        console.log("Sending Workout Data:", payload); // Debugging
+
+        try {
+            // 5. Kirim ke Backend
+            const response = await fetch(`${API_BASE_URL}/workouts`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || "Failed to save workout");
+            }
+
+            console.log("Success:", result);
+            return true; // Berhasil
+
+        } catch (error) {
+            console.error("Save Error:", error);
+            showCustomAlert("Save Failed", error.message, "error");
+            return false; // Gagal
+        }
+    }
+
 
     // =======================================================
     // BAGIAN 4: EVENT LISTENERS
@@ -520,14 +608,46 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     finishBtn.addEventListener('click', () => {
-        saveWorkoutState();
-        showConfirmModal('Finish Workout?', 'Your workout log will be saved.', () => {
-            sessionStorage.removeItem('activeWorkout');
-            confirmModal.classList.remove('active');
-            completedScreen.classList.add('active');
-            if (durationInterval) clearInterval(durationInterval);
-            if (restTimerInterval) clearInterval(restTimerInterval);
-            createConfetti();
+        // Cek dulu apakah ada latihan
+        const cards = document.querySelectorAll('.exercise-card');
+        if (cards.length === 0) {
+            showCustomAlert("Empty", "Add some exercises first!", "error");
+            return;
+        }
+
+        // Tampilkan Modal Konfirmasi
+        showConfirmModal('Finish Workout?', 'Your workout log will be saved to your history.', async () => {
+            
+            // Ubah tombol "Yes" jadi loading state (opsional tapi bagus UX-nya)
+            const yesBtn = document.getElementById('confirm-yes-btn');
+            const originalText = yesBtn.textContent;
+            yesBtn.textContent = "Saving...";
+            yesBtn.disabled = true;
+
+            // 1. Panggil Fungsi Simpan ke API
+            const isSaved = await saveLoggedWorkout();
+
+            yesBtn.textContent = originalText;
+            yesBtn.disabled = false;
+
+            // 2. Jika Berhasil, Lanjutkan Flow UI
+            if (isSaved) {
+                // Hapus data temporary browser
+                sessionStorage.removeItem('activeWorkout');
+                
+                // Tutup Modal
+                confirmModal.classList.remove('active');
+                
+                // Tampilkan Layar Sukses (Confetti)
+                completedScreen.classList.add('active');
+                
+                // Hentikan Timer
+                if (durationInterval) clearInterval(durationInterval);
+                if (restTimerInterval) clearInterval(restTimerInterval);
+                
+                createConfetti();
+            }
+            // Jika gagal, alert sudah muncul di dalam fungsi saveLoggedWorkout, modal tetap terbuka
         });
     });
 

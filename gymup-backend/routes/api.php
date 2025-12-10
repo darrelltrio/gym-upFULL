@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\ExerciseController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\NutritionController;
 use App\Http\Controllers\API\WorkoutController;
-
+use App\Http\Controllers\API\QuestController;
 // ==========================
 // PUBLIC ROUTES (Register & Login)
 // ==========================
@@ -52,4 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Route Weekly Leaderboard
     Route::get('/leaderboard/weekly', [WorkoutController::class, 'weeklyLeaderboard']);
+
+    // QUESTS & GAMIFICATION
+    Route::get('/quests', [QuestController::class, 'index']); // Lihat daftar & auto-update
+    Route::post('/quests/{id}/claim', [QuestController::class, 'claim']); // Klaim reward
 });

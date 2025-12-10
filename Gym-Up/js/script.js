@@ -257,44 +257,100 @@ document.addEventListener('DOMContentLoaded', function() {
     // =======================================================
 
     function renderUserData(user) {
+        // 1. Inisial & Formatting Dasar
         const initial = user.username ? user.username.charAt(0).toUpperCase() : '?';
+        const formattedVolume = (user.total_volume || 0).toLocaleString('id-ID'); // Format angka Indonesia (titik)
 
-        // Dashboard UI
+        // ==========================================
+        // A. UPDATE ELEMENT DASHBOARD UTAMA
+        // ==========================================
         if (userLevelEl) userLevelEl.textContent = `LVL ${user.level || 1}`;
         if (userStreakEl) userStreakEl.textContent = `🔥 ${user.current_streak || 0}`;
         if (userInitialEl) userInitialEl.textContent = initial;
         if (userWelcomeEl) userWelcomeEl.textContent = `Welcome Back, ${user.username}!`;
-        if (userTotalVolumeEl) userTotalVolumeEl.textContent = `${(user.total_volume || 0).toLocaleString()} kg`;
+        if (userTotalVolumeEl) userTotalVolumeEl.textContent = `${formattedVolume} kg`;
 
-        // Rank Logic
+        // ==========================================
+        // B. LOGIKA LEVEL PROGRESS BAR (XP)
+        // ==========================================
+        // Asumsi: Setiap 1.000 XP naik 1 Level.
+        const xpPerLevel = 1000;
+        const currentLevelXp = user.xp % xpPerLevel; // Sisa XP di level ini
+        const levelPercent = (currentLevelXp / xpPerLevel) * 100;
+
+        // Update UI Progress Bar (jika elemennya ada di HTML)
+        const levelBar = document.getElementById('user-level-progress');
+        const levelText = document.getElementById('user-level-text');
+
+        if (levelBar) {
+            levelBar.style.width = `${levelPercent}%`;
+            // Tambahkan efek transisi di CSS agar mulus
+        }
+        if (levelText) {
+            levelText.textContent = `${currentLevelXp} / ${xpPerLevel} XP`;
+        }
+
+        // ==========================================
+        // C. LOGIKA RANK & NEXT RANK TARGET
+        // ==========================================
         let rankName = "Newbie";
-        if (user.rank_points > 100) rankName = "Intermediate";
-        if (user.rank_points > 500) rankName = "Advanced";
-        if (user.rank_points > 1000) rankName = "Elite";
+        let nextRankName = "Intermediate";
+        let nextRankTarget = 100;
+        const currentRP = user.rank_points || 0;
 
+        if (currentRP >= 1000) {
+            rankName = "Elite";
+            nextRankName = "Max Rank";
+            nextRankTarget = Infinity;
+        } else if (currentRP >= 500) {
+            rankName = "Advanced";
+            nextRankName = "Elite";
+            nextRankTarget = 1000;
+        } else if (currentRP >= 100) {
+            rankName = "Intermediate";
+            nextRankName = "Advanced";
+            nextRankTarget = 500;
+        }
+
+        // Update Teks Rank di Dashboard
         if (userRankEl) userRankEl.textContent = rankName;
+        
+        // Update Indikator "Menuju Rank Berikutnya"
+        const rankProgressEl = document.getElementById('rank-progress-indicator');
+        if (rankProgressEl) {
+            if (nextRankTarget === Infinity) {
+                rankProgressEl.textContent = "You are at the top!";
+            } else {
+                const pointsNeeded = nextRankTarget - currentRP;
+                // Menggunakan innerHTML agar bisa mewarnai angka
+                rankProgressEl.innerHTML = `<span style="color:var(--primary-gold)">${pointsNeeded} RP</span> to ${nextRankName}`;
+            }
+        }
 
-        // Profile UI
+        // ==========================================
+        // D. UPDATE HALAMAN PROFILE
+        // ==========================================
         if (profileInitialEl) profileInitialEl.textContent = initial;
         if (profileNameEl) profileNameEl.textContent = user.username;
         if (profileRankEl) profileRankEl.textContent = rankName;
-        if(profileTotalVolumeEl) profileTotalVolumeEl.textContent = `${(user.total_volume || 0).toLocaleString()} kg`;
+        if (profileTotalVolumeEl) profileTotalVolumeEl.textContent = `${formattedVolume} kg`;
     
-    // PERBAIKAN: Gunakan data asli dari Accessor Laravel
-        if(profileWorkoutsCompletedEl) {
-        // Jika backend mengirim 'workouts_completed', pakai itu. Jika tidak, 0.
-        const count = user.workouts_completed !== undefined ? user.workouts_completed : 0;
-        profileWorkoutsCompletedEl.textContent = count;
+        // Update Workouts Completed (dari Accessor Laravel)
+        if (profileWorkoutsCompletedEl) {
+            const count = user.workouts_completed !== undefined ? user.workouts_completed : 0;
+            profileWorkoutsCompletedEl.textContent = count;
         }
 
-        // Form Inputs
+        // ==========================================
+        // E. ISI FORM INPUT (PROFILE SETTINGS)
+        // ==========================================
         if (inputAge) inputAge.value = user.age || '';
         if (inputGender) inputGender.value = user.gender || 'male';
         if (inputHeight) inputHeight.value = user.height_cm || '';
         if (inputWeight) inputWeight.value = user.weight_kg || '';
         if (inputActivity) inputActivity.value = user.activity_level || 'sedentary';
 
-        // Update Active Goal Button
+        // Update Tombol Goal (Bulk/Cut/Maintain)
         const goalButtons = document.querySelectorAll('.goal-btn');
         goalButtons.forEach(btn => {
             btn.classList.remove('active');
@@ -329,9 +385,130 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Placeholders
-    function loadQuestData() {
-        if (questListContainer) questListContainer.innerHTML = "<p style='text-align:center; color:#888;'>No active quests yet.</p>";
+    async function loadQuestData() {
+        const container = document.getElementById('quest-list-container');
+        const questBtn = document.getElementById('quests-btn'); // Tombol Menu Quest
+        
+        if (!container) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/quests`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                // 1. LOGIKA NOTIFIKASI (RED DOT)
+                // Cek apakah ada minimal satu quest yang 'completed' (siap claim)
+                const hasClaimable = result.data.some(q => q.status === 'completed');
+                
+                if (questBtn) {
+                    if (hasClaimable) {
+                        questBtn.classList.add('has-notification'); // Tambah titik merah
+                    } else {
+                        questBtn.classList.remove('has-notification');
+                    }
+                }
+
+                if (result.data.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#888;">No active quests.</p>';
+                    return;
+                }
+
+                container.innerHTML = ''; 
+
+                result.data.forEach(quest => {
+                    let percent = (quest.current_progress / quest.target_value) * 100;
+                    if (percent > 100) percent = 100;
+
+                    let actionBtn = '';
+                    if (quest.status === 'completed') {
+                        // Tombol Claim Berdenyut
+                        actionBtn = `<button class="quest-claim-btn pulse-btn" onclick="claimQuest(${quest.user_quest_id})">Claim</button>`;
+                    } else if (quest.status === 'claimed') {
+                        actionBtn = `<span class="quest-claimed-text">Claimed</span>`;
+                    } else {
+                        actionBtn = `<span class="quest-progress-text">${quest.current_progress} / ${quest.target_value}</span>`;
+                    }
+
+                    // Sembunyikan quest yang sudah diklaim agar list rapi (Opsional)
+                    if (quest.status === 'claimed') return;
+
+                    const card = `
+                        <div class="quest-item ${quest.status}">
+                            <div class="quest-info">
+                                <h4>${quest.title}</h4>
+                                <p>${quest.description}</p>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill" style="width: ${percent}%"></div>
+                                </div>
+                            </div>
+                            <div class="quest-rewards-container">
+                                <div class="reward-badge xp">+${quest.reward_xp} XP</div>
+                                <div class="reward-badge rp">+${quest.reward_rank_points} RP</div>
+                                
+                                <div style="margin-top:5px;">${actionBtn}</div>
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', card);
+                });
+            }
+        } catch (error) {
+            console.error('Gagal load quests:', error);
+        }
     }
+
+    // Fungsi Global agar bisa dipanggil via onclick HTML
+    window.claimQuest = async function(userQuestId) {
+        // Efek loading tombol (UX)
+        const btn = document.querySelector(`button[onclick="claimQuest(${userQuestId})"]`);
+        if(btn) {
+            btn.textContent = "..."; 
+            btn.disabled = true;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/quests/${userQuestId}/claim`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                // Update Local Storage dengan data terbaru dari respons
+                // Agar UI langsung update tanpa fetch ulang /user
+                const currentUser = JSON.parse(localStorage.getItem('user_data'));
+                currentUser.xp = result.new_xp;
+                currentUser.level = result.new_level;
+                currentUser.rank_points = result.new_rank_points; // Update RP
+                
+                localStorage.setItem('user_data', JSON.stringify(currentUser));
+                
+                // Refresh UI
+                renderUserData(currentUser);
+                loadQuestData(); // Refresh list quest (tombol claim hilang, notif hilang)
+
+                // Notifikasi Sukses
+                showNotification("Quest Complete!", `+${result.reward_xp} XP & +${result.reward_rank_points} RP`, "success");
+                
+                if (result.leveled_up) {
+                    // Beri delay sedikit agar user lihat notif quest dulu
+                    setTimeout(() => {
+                        showNotification("LEVEL UP!", `Congrats! You reached Level ${result.new_level}! 🔥`, "success");
+                    }, 1500);
+                }
+            } else {
+                showNotification("Failed", result.message, "error");
+                if(btn) { btn.textContent = "Claim"; btn.disabled = false; }
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
     async function loadMiniLeaderboard() {
         const container = document.getElementById('mini-leaderboard-container');
         if (!container) return; // Stop jika elemen tidak ada (misal bukan di Dashboard)

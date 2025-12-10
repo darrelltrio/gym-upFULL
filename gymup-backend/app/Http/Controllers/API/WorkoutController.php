@@ -17,12 +17,12 @@ class WorkoutController extends Controller
      */
     public function store(Request $request)
     {
-        $user = $request->user(); // Ambil user dari token (Eksklusif)
+        $user = $request->user(); // Ambil user dari token
 
-        // Validasi
+        // 1. Validasi Input
         $validated = $request->validate([
             'duration_seconds' => 'required|integer|min:1',
-            'performed_at' => 'nullable|date', // Opsional, default: now()
+            'performed_at' => 'nullable|date',
             'exercises' => 'required|array|min:1',
             'exercises.*.exercise_id' => 'required|integer',
             'exercises.*.sets' => 'required|array|min:1',
@@ -30,10 +30,10 @@ class WorkoutController extends Controller
             'exercises.*.sets.*.reps' => 'required|integer|min:1',
         ]);
 
-        DB::beginTransaction(); // Mulai transaksi aman
+        DB::beginTransaction(); // Mulai transaksi database
 
         try {
-            // A. Buat Sesi Baru
+            // 2. Buat Sesi Latihan Baru
             $session = WorkoutSession::create([
                 'user_id' => $user->user_id,
                 'session_date' => $validated['performed_at'] ?? now(),
@@ -42,7 +42,7 @@ class WorkoutController extends Controller
 
             $totalSessionVolume = 0;
 
-            // B. Loop Simpan Detail Latihan
+            // 3. Simpan Detail Set Latihan
             foreach ($validated['exercises'] as $exerciseData) {
                 foreach ($exerciseData['sets'] as $index => $set) {
                     ExerciseLog::create([
@@ -58,28 +58,65 @@ class WorkoutController extends Controller
                 }
             }
 
-            // C. UPDATE STATS USER (PENTING UNTUK LEADERBOARD)
-            // Tanpa ini, Leaderboard tidak akan berubah meskipun user latihan
-            $user->total_volume += $totalSessionVolume;
+            // ======================================================
+            // 4. LOGIKA HITUNG STREAK (Harian)
+            // ======================================================
             
-            // Opsional: Tambah XP kecil untuk aktivitas logging (Gamifikasi)
-            // XP Besar nanti dari Quest Claim
-            $user->xp += 10; 
-            
-            $user->save(); // Simpan perubahan ke tabel users
+            // Ambil sesi terakhir user SEBELUM sesi yang baru dibuat ini
+            $lastSession = WorkoutSession::where('user_id', $user->user_id)
+                ->where('session_id', '!=', $session->session_id) // Exclude sesi ini
+                ->orderBy('session_date', 'desc')
+                ->first();
 
+            // Normalisasi tanggal ke "Start of Day" (jam 00:00:00) agar akurat
+            $currentDate = \Carbon\Carbon::parse($session->session_date)->startOfDay();
+
+            if ($lastSession) {
+                $lastDate = \Carbon\Carbon::parse($lastSession->session_date)->startOfDay();
+                
+                // Hitung selisih hari
+                $diffInDays = $lastDate->diffInDays($currentDate);
+
+                if ($diffInDays == 1) {
+                    // Latihan kemarin (Consecutive) -> Streak Nambah
+                    $user->current_streak += 1;
+                } elseif ($diffInDays > 1) {
+                    // Bolong lebih dari 1 hari -> Reset Streak jadi 1
+                    $user->current_streak = 1;
+                }
+                // Jika diffInDays == 0 (Latihan di hari yang sama), Streak TETAP (tidak nambah)
+            } else {
+                // Tidak ada sesi sebelumnya (Latihan Pertama) -> Streak 1
+                $user->current_streak = 1;
+            }
+
+            // ======================================================
+            // 5. UPDATE STATS USER
+            // ======================================================
+            
+            // Update Total Volume
+            $user->total_volume += $totalSessionVolume;
+
+            // HAPUS LOGIKA XP LAMA:
+            // $user->xp += 10; <--- Dihapus, karena XP sekarang via Quest Claim
+
+            $user->save(); // Simpan perubahan ke tabel users
             DB::commit();
 
             return response()->json([
                 'message' => 'Workout logged successfully!',
                 'session_id' => $session->session_id,
                 'volume_added' => $totalSessionVolume,
-                'new_total_volume' => $user->total_volume // Return ini agar frontend bisa update UI
+                'new_total_volume' => $user->total_volume,
+                'current_streak' => $user->current_streak // Return streak terbaru ke Frontend
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Failed to log workout', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Failed to log workout', 
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 

@@ -15,6 +15,10 @@ class User extends Authenticatable
     // 1. Definisikan Primary Key (Karena di database kita pakai 'user_id')
     protected $primaryKey = 'user_id';
 
+    protected $appends = [
+        'workouts_completed',
+    ];
+
     // 2. Daftar kolom yang boleh diisi saat Register (Mass Assignment)
     protected $fillable = [
         'username', // Kita pakai username, bukan name
@@ -63,5 +67,17 @@ class User extends Authenticatable
             'level' => 'integer',
             'xp' => 'integer',
         ];
+    }
+
+    public function workoutSessions()
+    {
+        // Parameter: Model, Foreign Key, Local Key
+        return $this->hasMany(WorkoutSession::class, 'user_id', 'user_id');
+    }
+
+    public function getWorkoutsCompletedAttribute()
+    {
+        // Mengembalikan jumlah baris di tabel workout_sessions milik user ini
+        return $this->workoutSessions()->count();
     }
 }

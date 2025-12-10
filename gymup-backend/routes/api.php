@@ -46,4 +46,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 3. Session Detail (GET) - Opsional
     Route::get('/workouts/{id}', [WorkoutController::class, 'show']);
+
+    Route::get('/workouts/history', [WorkoutController::class, 'history']);
+    Route::get('/leaderboard', [WorkoutController::class, 'leaderboard']);
+
+    // Route Weekly Leaderboard
+    Route::get('/leaderboard/weekly', [WorkoutController::class, 'weeklyLeaderboard']);
 });

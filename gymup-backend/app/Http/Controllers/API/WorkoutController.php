@@ -92,29 +92,36 @@ class WorkoutController extends Controller
     {
         $user = $request->user();
 
-        // Query Eksklusif: where('user_id', $user->user_id)
-        // Eager Loading 'logs.exercise' agar nama latihan langsung terbawa
+        // Gunakan paginate(10) menggantikan get() atau limit()
+        // with(['logs.exercise']) penting untuk performa
         $history = WorkoutSession::where('user_id', $user->user_id)
-            ->with(['logs.exercise' => function($query) {
-                $query->select('exercise_id', 'name'); // Ambil nama saja biar ringan
-            }])
+            ->with(['logs.exercise']) 
             ->orderBy('session_date', 'desc')
-            ->limit(20) // Batasi 20 terakhir agar ringan (Pagination nanti)
+            ->paginate(10); 
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $history
+        ], 200);
+    }
+
+    /**
+     * 4. LEADERBOARD (Baru)
+     * Menampilkan ranking user berdasarkan total_volume
+     */
+    public function leaderboard()
+    {
+        // Ambil Top 20 User dengan volume tertinggi
+        // Select hanya kolom publik demi keamanan
+        $leaders = \App\Models\User::select('user_id', 'username', 'level', 'total_volume', 'rank_points', 'goal')
+            ->orderBy('total_volume', 'desc')
+            ->limit(20)
             ->get();
 
-        // Format Data untuk Frontend (Opsional, agar lebih rapi JSON-nya)
-        $formattedHistory = $history->map(function ($session) {
-            return [
-                'session_id' => $session->session_id,
-                'date' => $session->session_date,
-                'duration' => $session->duration_seconds,
-                'total_sets' => $session->logs->count(),
-                // Ambil nama-nama latihan unik yang dilakukan di sesi ini
-                'exercises_played' => $session->logs->pluck('exercise.name')->unique()->values()
-            ];
-        });
-
-        return response()->json($formattedHistory);
+        return response()->json([
+            'status' => 'success',
+            'data' => $leaders
+        ], 200);
     }
 
     /**
@@ -135,5 +142,34 @@ class WorkoutController extends Controller
         }
 
         return response()->json($session);
+    }
+
+    public function weeklyLeaderboard()
+    {
+        // Tentukan awal dan akhir minggu ini (Senin 00:00 - Minggu 23:59)
+        $startOfWeek = \Carbon\Carbon::now()->startOfWeek()->format('Y-m-d H:i:s');
+        $endOfWeek = \Carbon\Carbon::now()->endOfWeek()->format('Y-m-d H:i:s');
+
+        $leaders = \App\Models\User::select('users.user_id', 'users.username', 'users.level')
+            // Gabungkan dengan tabel sesi & log
+            ->join('workout_sessions', 'users.user_id', '=', 'workout_sessions.user_id')
+            ->join('exercise_logs', 'workout_sessions.session_id', '=', 'exercise_logs.session_id')
+            // Filter HANYA sesi minggu ini
+            ->whereBetween('workout_sessions.session_date', [$startOfWeek, $endOfWeek])
+            // Hitung total volume (Berat x Reps)
+            ->selectRaw('SUM(exercise_logs.weight_kg * exercise_logs.reps) as weekly_volume')
+            ->groupBy('users.user_id', 'users.username', 'users.level')
+            ->orderByDesc('weekly_volume')
+            ->limit(5) // Ambil Top 5 saja untuk dashboard
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'range' => [
+                'start' => $startOfWeek,
+                'end' => $endOfWeek
+            ],
+            'data' => $leaders
+        ], 200);
     }
 }

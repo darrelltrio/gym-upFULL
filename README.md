@@ -1,4 +1,4 @@
-# 🏋️‍♂️ Gym-Up (In Development)
+# 🏋️‍♂️ Gym-Up (Build V1)
 
 **Gym-Up** is a gamified workout tracker designed to help you level up your fitness journey. Built with a decoupled architecture, it combines a robust Laravel API with a responsive Vanilla HTML, CSS, JS frontend.
 
@@ -22,11 +22,11 @@
 ### 2. Workout Logging
 * **Real-time Tracking:** Log sets, reps, and weight instantly.
 * **Rest Timer:** Built-in timer between sets.
-* **History:** (Coming Soon) Track your progress over time.
+* **History:** Track your progress over time.
 
 ### 3. Gamification & Nutrition
-* **RPG Elements:** Database structure ready for XP, Levels, Ranks, and Streak. (Coming soon)
-* **Nutrition Goals:** Bulking, Cutting, and Maintenance calorie targets based on users' measurements. (Coming soon)
+* **RPG Elements:** Database structure ready for XP, Levels, Ranks, and Streak.
+* **Nutrition Goals:** Bulking, Cutting, and Maintenance calorie targets based on users' measurements.
 
 ### 4. Custom UI/UX
 * **Dark Mode:** Sleek dark aesthetic with Gold accents.

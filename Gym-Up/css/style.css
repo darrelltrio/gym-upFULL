@@ -524,6 +524,12 @@ body {
     border-radius: 15px;
     width: 90%;
     max-width: 500px;
+
+    max-height: 80vh;     /* Maksimal tinggi 80% dari layar */
+    overflow-y: auto;
+
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
 }
 
 .quests-modal-content h3 {
@@ -532,15 +538,39 @@ body {
     font-weight: 600;
 }
 
-.close-btn {
+/* =========================================
+   TOMBOL CLOSE DILUAR MODAL (FLOATING)
+   ========================================= */
+.close-btn-outside {
     position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
+    top: -40px;  /* Geser ke atas (keluar dari kotak modal) */
+    right: 0;    /* Rata kanan dengan kotak modal */
+    
+    background: transparent; /* Latar transparan */
+    color: #fff;             /* Warna ikon putih */
     border: none;
-    color: #a0a0a0;
-    font-size: 1.5rem;
+    font-size: 2rem;         /* Ukuran font besar */
+    line-height: 1;
     cursor: pointer;
+    z-index: 1001;           
+    transition: transform 0.2s, color 0.2s;
+    padding: 5px;
+}
+
+.close-btn-outside:hover {
+    color: #ff4d4d;        /* Merah saat di-hover */
+    transform: scale(1.1); /* Efek membesar sedikit */
+}
+
+/* Mobile Adjustment: 
+   Jika layar kecil, pastikan modal tidak terlalu mepet ke atas 
+   agar tombol X tidak terpotong layar 
+*/
+@media (max-width: 600px) {
+    .modal-wrapper {
+        padding-top: 60px; /* Beri jarak atas lebih banyak */
+        align-items: flex-start; /* Modal mulai dari atas (bukan tengah) */
+    }
 }
 
 /* Quest Progress Bar Styles */
@@ -1106,4 +1136,34 @@ body {
     color: #888;
     margin-top: 2px;
     text-align: right;
+}
+
+/* =========================================
+   CUSTOM SCROLLBAR UNTUK MODAL
+   (Tema: Gold & Dark)
+   ========================================= */
+
+/* 1. Lebar Scrollbar */
+.modal-content::-webkit-scrollbar {
+    width: 8px; /* Lebar vertikal */
+    height: 8px; /* Tinggi horizontal (jika ada) */
+}
+
+/* 2. Latar Belakang Scrollbar (Track) */
+.modal-content::-webkit-scrollbar-track {
+    background: #121212; /* Hitam pekat agar kontras */
+    border-radius: 4px; /* Sedikit melengkung */
+    border: 1px solid #333; /* Batas tipis agar terlihat rapi */
+}
+
+/* 3. Pegangan Scrollbar (Thumb) - Bagian yang digeser */
+.modal-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ffc107, #ff9800); /* Gradasi Emas */
+    border-radius: 4px;
+    border: 2px solid #121212; /* Memberi jarak (padding) dengan track */
+}
+
+/* 4. Efek saat Hover pada Pegangan */
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ffd54f, #ffc107); /* Emas lebih terang */
 }

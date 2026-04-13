@@ -71,16 +71,33 @@ class User extends Authenticatable
             'xp' => 'integer',
         ];
     }
-
-    public function workoutSessions()
+    // User ini milik sebuah Gym
+    public function gym()
     {
-        // Parameter: Model, Foreign Key, Local Key
-        return $this->hasMany(WorkoutSession::class, 'user_id', 'user_id');
+        return $this->belongsTo(Gym::class);
     }
 
-    public function getWorkoutsCompletedAttribute()
+    /**
+     * Relasi: Satu User memiliki banyak Sesi Latihan
+     */
+    public function workoutSessions()
     {
-        // Mengembalikan jumlah baris di tabel workout_sessions milik user ini
-        return $this->workoutSessions()->count();
+        return $this->hasMany(WorkoutSession::class);
+    }
+
+    /**
+     * Relasi: Satu User memiliki banyak Log Nutrisi
+     */
+    public function nutritionLogs()
+    {
+        return $this->hasMany(UserNutritionLog::class);
+    }
+
+    /**
+     * Relasi: Satu User memiliki banyak Quest yang sedang/sudah dikerjakan
+     */
+    public function userQuests()
+    {
+        return $this->hasMany(UserQuest::class);
     }
 }

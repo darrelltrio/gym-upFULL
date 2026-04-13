@@ -4,27 +4,34 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ExerciseLog extends Model
 {
     use HasFactory;
 
-    protected $table = 'exercise_logs';
-    protected $primaryKey = 'log_id';
-    public $timestamps = false; // Tidak ada created_at/updated_at di tabel ini
-
     protected $fillable = [
-        'session_id',
+        'workout_session_id',
         'exercise_id',
         'set_number',
         'weight_kg',
         'reps'
     ];
 
-    // Relasi: Log -> Exercise Catalog (Belongs To)
-    // Untuk menampilkan nama latihan (misal: "Bench Press") di history
-    public function exercise()
+    /**
+     * Relasi: Log ini berada di dalam satu Sesi Latihan tertentu
+     */
+    public function workoutSession(): BelongsTo
     {
-        return $this->belongsTo(Exercise::class, 'exercise_id', 'exercise_id');
+        return $this->belongsTo(WorkoutSession::class);
+    }
+
+    /**
+     * Relasi: Log ini merujuk pada satu jenis latihan di Katalog Global
+     * (Misal: Log ini adalah log untuk gerakan 'Squat')
+     */
+    public function exercise(): BelongsTo
+    {
+        return $this->belongsTo(Exercise::class);
     }
 }

@@ -24,6 +24,9 @@ class User extends Authenticatable
         'username', // Kita pakai username, bukan name
         'email',
         'password',
+        'gym_id',
+        'role',
+        'total_volume',
         
         // Data Fisik & Nutrisi (Wajib diisi saat register)
         'goal',

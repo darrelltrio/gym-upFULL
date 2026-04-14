@@ -18,18 +18,11 @@ class ExerciseLog extends Model
         'reps'
     ];
 
-    /**
-     * Relasi: Log ini berada di dalam satu Sesi Latihan tertentu
-     */
     public function workoutSession(): BelongsTo
     {
         return $this->belongsTo(WorkoutSession::class);
     }
 
-    /**
-     * Relasi: Log ini merujuk pada satu jenis latihan di Katalog Global
-     * (Misal: Log ini adalah log untuk gerakan 'Squat')
-     */
     public function exercise(): BelongsTo
     {
         return $this->belongsTo(Exercise::class);

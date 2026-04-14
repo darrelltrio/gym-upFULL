@@ -18,27 +18,23 @@ class WorkoutSession extends Model
         'duration_minutes',
         'total_volume',
         'session_xp',
-        'rpe_score' // Fitur baru kita!
+        'rpe_score' // Sangat penting untuk Progressive Overload
     ];
 
-    // Karena kolom kita namanya start_time dan end_time (bukan default Laravel),
-    // kita beri tahu Laravel untuk memperlakukannya sebagai objek Carbon (Tanggal/Waktu)
-    protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
-    ];
+    // Beritahu Laravel agar mengubahnya menjadi objek Carbon (Waktu) otomatis
+    protected function casts(): array
+    {
+        return [
+            'start_time' => 'datetime',
+            'end_time' => 'datetime',
+        ];
+    }
 
-    /**
-     * Relasi: Sesi latihan ini MILIK satu User
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Relasi: Satu Sesi Latihan MEMILIKI BANYAK Log (Set dan Repetisi)
-     */
     public function exerciseLogs(): HasMany
     {
         return $this->hasMany(ExerciseLog::class);

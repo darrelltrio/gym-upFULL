@@ -11,15 +11,9 @@ class Food extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'calories',
-        'protein',
-        'carbs',
-        'fats',
-        'serving_size'
+        'name', 'calories', 'protein', 'carbs', 'fats', 'serving_size'
     ];
 
-    // Karena relasi table dinamakan user_nutrition_logs
     public function nutritionLogs(): HasMany
     {
         return $this->hasMany(UserNutritionLog::class, 'food_id');

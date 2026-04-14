@@ -21,23 +21,18 @@ class Quest extends Model
         'is_daily'
     ];
 
-    // Cast is_daily menjadi boolean agar mudah diolah di Frontend JS
-    protected $casts = [
-        'is_daily' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_daily' => 'boolean',
+        ];
+    }
 
-    /**
-     * Relasi: Quest BISA SAJA milik sebuah Gym (Custom Gym Quest)
-     * Jika null, berarti Global Quest dari Super Admin.
-     */
     public function gym(): BelongsTo
     {
         return $this->belongsTo(Gym::class);
     }
 
-    /**
-     * Relasi: Satu Quest dikerjakan oleh banyak User
-     */
     public function userQuests(): HasMany
     {
         return $this->hasMany(UserQuest::class);

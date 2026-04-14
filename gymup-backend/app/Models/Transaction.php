@@ -6,28 +6,26 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UserNutritionLog extends Model
+class Transaction extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'food_id', 'date', 'meal_type', 'quantity'
+        'gym_id',
+        'user_id',
+        'reference_number',
+        'type',
+        'amount',
+        'description'
     ];
 
-    protected function casts(): array
+    public function gym(): BelongsTo
     {
-        return [
-            'date' => 'date',
-        ];
+        return $this->belongsTo(Gym::class);
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function food(): BelongsTo
-    {
-        return $this->belongsTo(Food::class);
     }
 }

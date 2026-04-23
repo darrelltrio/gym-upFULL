@@ -1,95 +1,41 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Exercise;
+use App\Models\GymExerciseInventory; // Pastikan import model Pivot kita
 use Illuminate\Http\Request;
 
 class ExerciseController extends Controller
 {
-    // GET: Tampilkan Katalog (Global + Punya Saya)
+    /**
+     * GET: Tampilkan Katalog Latihan Khusus untuk Member
+     * Logika B2B2C: Hanya tampilkan latihan yang 'is_active' di Gym tempat member tersebut mendaftar.
+     */
     public function index(Request $request)
     {
-        // Ambil User ID dari Token yang login
-        $userId = $request->user()->user_id;
+        // 1. Ambil gym_id dari user (member) yang sedang login
+        $gymId = $request->user()->gym_id;
 
-        // Logika: Ambil yang Global (NULL) ATAU punya user ini
-        $exercises = Exercise::whereNull('created_by')
-                    ->orWhere('created_by', $userId)
-                    ->get();
+        // 2. Ambil semua ID latihan yang diaktifkan oleh Gym Owner di inventory mereka
+        $activeExerciseIds = GymExerciseInventory::where('gym_id', $gymId)
+                                ->where('is_active', true)
+                                ->pluck('exercise_id');
 
-        return response()->json($exercises);
-    }
-
-    // POST: Tambah Latihan Baru (Pasti punya Saya)
-    public function store(Request $request)
-    {
-        $validatedData = $request->validate([
-            // Validasi nama unik hanya untuk latihan milik user ini (agar tidak bentrok dengan global)
-            'name' => 'required|string|max:255', 
-            'muscle_group' => 'required|string|max:100',
-            'equipment' => 'required|string|max:100',
-        ]);
-
-        // Simpan dengan ID pemilik
-        $exercise = Exercise::create([
-            'name' => $validatedData['name'],
-            'muscle_group' => $validatedData['muscle_group'],
-            'equipment' => $validatedData['equipment'],
-            'created_by' => $request->user()->user_id // <--- KUNCI PRIVASI
-        ]);
+        // 3. Ambil detail latihannya berdasarkan ID yang aktif tadi
+        // Kita gunakan select spesifik agar payload JSON tidak terlalu berat di HP (PWA)
+        $exercises = Exercise::whereIn('id', $activeExerciseIds)
+                        ->select('id', 'name', 'target_muscle', 'type', 'base_xp', 'asset_url')
+                        ->get();
 
         return response()->json([
-            'message' => 'Exercise created successfully',
-            'data' => $exercise
-        ], 201);
-    }
-
-    // PUT: Edit Latihan (Hanya milik sendiri)
-    public function update(Request $request, $id)
-    {
-        $exercise = Exercise::find($id);
-
-        if (!$exercise) {
-            return response()->json(['message' => 'Exercise not found'], 404);
-        }
-
-        // CEK KEPEMILIKAN: Jangan izinkan edit jika Global atau punya orang lain
-        if ($exercise->created_by !== $request->user()->user_id) {
-            return response()->json(['message' => 'Unauthorized: You cannot edit global exercises.'], 403);
-        }
-
-        $validatedData = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'muscle_group' => 'sometimes|required|string|max:100',
-            'equipment' => 'sometimes|required|string|max:100',
-        ]);
-
-        $exercise->update($validatedData);
-
-        return response()->json([
-            'message' => 'Exercise updated successfully',
-            'data' => $exercise
+            'message' => 'Available exercises fetched successfully',
+            'data' => $exercises
         ]);
     }
-
-    // DELETE: Hapus Latihan (Hanya milik sendiri)
-    public function destroy(Request $request, $id)
-    {
-        $exercise = Exercise::find($id);
-
-        if (!$exercise) {
-            return response()->json(['message' => 'Exercise not found'], 404);
-        }
-
-        // CEK KEPEMILIKAN: Jangan izinkan hapus jika Global
-        if ($exercise->created_by !== $request->user()->user_id) {
-            return response()->json(['message' => 'Unauthorized: You cannot delete global exercises.'], 403);
-        }
-
-        $exercise->delete();
-
-        return response()->json(['message' => 'Exercise deleted successfully']);
-    }
+    
+    // 💡 FUNGSI STORE, UPDATE, DAN DESTROY SAYA HAPUS DARI SINI.
+    // Nanti kita akan buatkan `GymOwner/ExerciseController` khusus untuk Owner 
+    // agar keamanannya terpisah dan tidak tercampur dengan API Member.
 }

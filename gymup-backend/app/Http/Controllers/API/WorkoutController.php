@@ -7,206 +7,175 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\WorkoutSession;
 use App\Models\ExerciseLog;
+use App\Models\User;
+use Carbon\Carbon;
 
 class WorkoutController extends Controller
 {
     /**
-     * 1. LOG WORKOUT (Input Data)
-     * - Menyimpan Sesi & Log Latihan
-     * - Mengupdate Total Volume user (Untuk Leaderboard!)
+     * 1. LOG WORKOUT (Sistem PWA Bulk Store + AI RPE)
      */
     public function store(Request $request)
     {
-        $user = $request->user(); // Ambil user dari token
+        $user = $request->user();
 
-        // 1. Validasi Input
+        // 1. Validasi Input sesuai Schema Baru
         $validated = $request->validate([
-            'duration_seconds' => 'required|integer|min:1',
-            'performed_at' => 'nullable|date',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'rpe_score' => 'required|integer|min:1|max:10', // Data RPE dari PWA
             'exercises' => 'required|array|min:1',
-            'exercises.*.exercise_id' => 'required|integer',
+            'exercises.*.exercise_id' => 'required|exists:exercises,id',
             'exercises.*.sets' => 'required|array|min:1',
             'exercises.*.sets.*.weight_kg' => 'required|numeric|min:0',
             'exercises.*.sets.*.reps' => 'required|integer|min:1',
         ]);
 
-        DB::beginTransaction(); // Mulai transaksi database
+        DB::beginTransaction();
 
         try {
-            // 2. Buat Sesi Latihan Baru
+            // Hitung durasi dalam menit
+            $start = Carbon::parse($validated['start_time']);
+            $end = Carbon::parse($validated['end_time']);
+            $durationMinutes = $start->diffInMinutes($end);
+
+            // 2. Buat Sesi Latihan
             $session = WorkoutSession::create([
-                'user_id' => $user->user_id,
-                'session_date' => $validated['performed_at'] ?? now(),
-                'duration_seconds' => $validated['duration_seconds']
+                'user_id' => $user->id,
+                'start_time' => $start,
+                'end_time' => $end,
+                'duration_minutes' => $durationMinutes,
+                'rpe_score' => $validated['rpe_score'],
+                'total_volume' => 0,
+                'session_xp' => 0,
             ]);
 
             $totalSessionVolume = 0;
 
-            // 3. Simpan Detail Set Latihan
+            // 3. Simpan Detail Set Latihan (exerciseLogs)
             foreach ($validated['exercises'] as $exerciseData) {
                 foreach ($exerciseData['sets'] as $index => $set) {
                     ExerciseLog::create([
-                        'session_id' => $session->session_id,
+                        'workout_session_id' => $session->id,
                         'exercise_id' => $exerciseData['exercise_id'],
                         'set_number' => $index + 1,
                         'weight_kg' => $set['weight_kg'],
                         'reps' => $set['reps']
                     ]);
 
-                    // Hitung Volume (Berat x Reps)
                     $totalSessionVolume += ($set['weight_kg'] * $set['reps']);
                 }
             }
 
             // ======================================================
-            // 4. LOGIKA HITUNG STREAK (Harian)
+            // 4. LOGIKA STREAK HARIAN (Dipertahankan dari Legacy)
             // ======================================================
-            
-            // Ambil sesi terakhir user SEBELUM sesi yang baru dibuat ini
-            $lastSession = WorkoutSession::where('user_id', $user->user_id)
-                ->where('session_id', '!=', $session->session_id) // Exclude sesi ini
-                ->orderBy('session_date', 'desc')
+            $lastSession = WorkoutSession::where('user_id', $user->id)
+                ->where('id', '!=', $session->id)
+                ->orderBy('start_time', 'desc')
                 ->first();
 
-            // Normalisasi tanggal ke "Start of Day" (jam 00:00:00) agar akurat
-            $currentDate = \Carbon\Carbon::parse($session->session_date)->startOfDay();
+            $currentDate = $start->copy()->startOfDay();
 
             if ($lastSession) {
-                $lastDate = \Carbon\Carbon::parse($lastSession->session_date)->startOfDay();
-                
-                // Hitung selisih hari
+                $lastDate = Carbon::parse($lastSession->start_time)->startOfDay();
                 $diffInDays = $lastDate->diffInDays($currentDate);
 
                 if ($diffInDays == 1) {
-                    // Latihan kemarin (Consecutive) -> Streak Nambah
                     $user->current_streak += 1;
                 } elseif ($diffInDays > 1) {
-                    // Bolong lebih dari 1 hari -> Reset Streak jadi 1
                     $user->current_streak = 1;
                 }
-                // Jika diffInDays == 0 (Latihan di hari yang sama), Streak TETAP (tidak nambah)
             } else {
-                // Tidak ada sesi sebelumnya (Latihan Pertama) -> Streak 1
                 $user->current_streak = 1;
             }
 
             // ======================================================
-            // 5. UPDATE STATS USER
+            // 5. KALKULASI XP & AI RECOMMENDATION
             // ======================================================
-            
-            // Update Total Volume
+            // Bonus XP berdasarkan durasi, volume, dan konsistensi RPE
+            $baseXp = 50; 
+            $volumeBonus = floor($totalSessionVolume / 100); // 1 XP tiap 100kg
+            $sessionXp = $baseXp + $volumeBonus;
+
+            $aiMessage = "Good job!";
+            if ($validated['rpe_score'] <= 6) {
+                $aiMessage = "RPE kamu cukup rendah ({$validated['rpe_score']}/10). Sesi berikutnya, cobalah naikkan beban (Progressive Overload)!";
+            } elseif ($validated['rpe_score'] >= 9) {
+                $aiMessage = "RPE sangat tinggi! Pastikan kamu mendapat istirahat yang cukup sebelum melatih otot ini lagi.";
+            }
+
+            // Update Sesi & User
+            $session->update([
+                'total_volume' => $totalSessionVolume,
+                'session_xp' => $sessionXp
+            ]);
+
             $user->total_volume += $totalSessionVolume;
+            $user->xp += $sessionXp;
+            $user->save();
 
-            // HAPUS LOGIKA XP LAMA:
-            // $user->xp += 10; <--- Dihapus, karena XP sekarang via Quest Claim
-
-            $user->save(); // Simpan perubahan ke tabel users
             DB::commit();
 
             return response()->json([
                 'message' => 'Workout logged successfully!',
-                'session_id' => $session->session_id,
-                'volume_added' => $totalSessionVolume,
-                'new_total_volume' => $user->total_volume,
-                'current_streak' => $user->current_streak // Return streak terbaru ke Frontend
+                'session_id' => $session->id,
+                'xp_earned' => $sessionXp,
+                'ai_insight' => $aiMessage,
+                'current_streak' => $user->current_streak
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Failed to log workout', 
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['message' => 'Failed to log workout', 'error' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * 2. HISTORY (Output Data)
-     * - Menampilkan daftar latihan HANYA milik user yang login.
-     * - Diurutkan dari yang terbaru.
+     * 2. HISTORY (Diperbarui relasinya)
      */
     public function history(Request $request)
     {
-        $user = $request->user();
-
-        // Gunakan paginate(10) menggantikan get() atau limit()
-        // with(['logs.exercise']) penting untuk performa
-        $history = WorkoutSession::where('user_id', $user->user_id)
-            ->with(['logs.exercise']) 
-            ->orderBy('session_date', 'desc')
+        $history = WorkoutSession::where('user_id', $request->user()->id)
+            ->with(['exerciseLogs.exercise']) // Relasi baru
+            ->orderBy('start_time', 'desc')
             ->paginate(10); 
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $history
-        ], 200);
+        return response()->json(['status' => 'success', 'data' => $history], 200);
     }
 
     /**
-     * 4. LEADERBOARD (Baru)
-     * Menampilkan ranking user berdasarkan total_volume
-     */
-    public function leaderboard()
-    {
-        // Ambil Top 20 User dengan volume tertinggi
-        // Select hanya kolom publik demi keamanan
-        $leaders = \App\Models\User::select('user_id', 'username', 'level', 'total_volume', 'rank_points', 'goal')
-            ->orderBy('total_volume', 'desc')
-            ->limit(20)
-            ->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $leaders
-        ], 200);
-    }
-
-    /**
-     * 3. DETAIL SESSION (Opsional tapi berguna)
-     * - Untuk melihat detail "Apa saja set saya kemarin?"
+     * 3. DETAIL SESSION
      */
     public function show(Request $request, $id)
     {
-        $user = $request->user();
-
-        $session = WorkoutSession::where('session_id', $id)
-            ->where('user_id', $user->user_id) // Security Check: Punya dia bukan?
-            ->with('logs.exercise')
+        $session = WorkoutSession::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->with('exerciseLogs.exercise')
             ->first();
 
         if (!$session) {
-            return response()->json(['message' => 'Session not found or unauthorized'], 404);
+            return response()->json(['message' => 'Session not found'], 404);
         }
 
         return response()->json($session);
     }
 
-    public function weeklyLeaderboard()
+    /**
+     * 4. LEADERBOARD B2B2C (TERISOLASI PER GYM)
+     */
+    public function leaderboard(Request $request)
     {
-        // Tentukan awal dan akhir minggu ini (Senin 00:00 - Minggu 23:59)
-        $startOfWeek = \Carbon\Carbon::now()->startOfWeek()->format('Y-m-d H:i:s');
-        $endOfWeek = \Carbon\Carbon::now()->endOfWeek()->format('Y-m-d H:i:s');
+        $user = $request->user();
 
-        $leaders = \App\Models\User::select('users.user_id', 'users.username', 'users.level')
-            // Gabungkan dengan tabel sesi & log
-            ->join('workout_sessions', 'users.user_id', '=', 'workout_sessions.user_id')
-            ->join('exercise_logs', 'workout_sessions.session_id', '=', 'exercise_logs.session_id')
-            // Filter HANYA sesi minggu ini
-            ->whereBetween('workout_sessions.session_date', [$startOfWeek, $endOfWeek])
-            // Hitung total volume (Berat x Reps)
-            ->selectRaw('SUM(exercise_logs.weight_kg * exercise_logs.reps) as weekly_volume')
-            ->groupBy('users.user_id', 'users.username', 'users.level')
-            ->orderByDesc('weekly_volume')
-            ->limit(5) // Ambil Top 5 saja untuk dashboard
+        // HANYA ambil member yang gym_id nya sama dengan user yang request
+        $leaders = User::where('gym_id', $user->gym_id)
+            ->where('role', 'member') // Pastikan owner/admin tidak ikut masuk leaderboard
+            ->select('id', 'name', 'level', 'total_volume', 'goal')
+            ->orderBy('total_volume', 'desc')
+            ->limit(20)
             ->get();
 
-        return response()->json([
-            'status' => 'success',
-            'range' => [
-                'start' => $startOfWeek,
-                'end' => $endOfWeek
-            ],
-            'data' => $leaders
-        ], 200);
+        return response()->json(['status' => 'success', 'data' => $leaders], 200);
     }
 }

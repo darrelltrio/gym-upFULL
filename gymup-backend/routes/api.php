@@ -30,7 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- GRUP KHUSUS MEMBER (B2C) ---
     Route::middleware('role:member')->group(function () {
-        // Contoh: Route::get('/member/dashboard', [MemberController::class, 'index']);
+        // Member hanya butuh GET untuk melihat daftar gerakan yang tersedia di gym-nya
+        Route::get('/member/exercises', [\App\Http\Controllers\API\ExerciseController::class, 'index']);
     });
 
     // --- GRUP KHUSUS SUPER ADMIN ---

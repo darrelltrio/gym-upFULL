@@ -20,13 +20,21 @@ Route::post('/login', [AuthController::class, 'login']);
 */
 Route::middleware('auth:sanctum')->group(function () {
     
-    // Auth Management
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me', [AuthController::class, 'me']); // Ambil profil user yang sedang login
+    Route::get('/me', [AuthController::class, 'me']);
 
-    /* Kedepannya, kita akan menaruh rute spesifik di sini:
-       - Rute Gym Owner (B2B)
-       - Rute Member (B2C)
-       - Rute Super Admin
-    */
+    // --- GRUP KHUSUS GYM OWNER (B2B) ---
+    Route::middleware('role:gym_owner')->group(function () {
+        // Contoh: Route::get('/owner/stats', [GymOwnerController::class, 'stats']);
+    });
+
+    // --- GRUP KHUSUS MEMBER (B2C) ---
+    Route::middleware('role:member')->group(function () {
+        // Contoh: Route::get('/member/dashboard', [MemberController::class, 'index']);
+    });
+
+    // --- GRUP KHUSUS SUPER ADMIN ---
+    Route::middleware('role:super_admin')->group(function () {
+        // ...
+    });
 });

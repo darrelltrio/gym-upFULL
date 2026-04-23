@@ -1,120 +1,111 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Food; // Pastikan Model Food ada (akan kita bahas di bawah)
+use App\Models\Food;
+use App\Models\UserNutritionLog;
+use Carbon\Carbon;
 
 class NutritionController extends Controller
 {
-    public function getRecommendations(Request $request)
+    /**
+     * Menampilkan daftar makanan (Master Data Global)
+     */
+    public function getFoods()
+    {
+        // Nantinya Super Admin yang mengisi tabel ini.
+        // Kita select data yang penting saja untuk dropdown PWA.
+        $foods = Food::select('id', 'name', 'calories', 'protein', 'carbs', 'fats', 'serving_size')->get();
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $foods
+        ], 200);
+    }
+
+    /**
+     * Menampilkan log nutrisi member pada hari tertentu beserta total makro-nya.
+     */
+    public function index(Request $request)
     {
         $user = $request->user();
+        
+        // Frontend bisa kirim tanggal spesifik via query parameter (?date=2025-10-10)
+        // Jika tidak ada, gunakan hari ini.
+        $targetDate = $request->query('date', Carbon::today()->toDateString());
 
-        // 1. Hitung BMR (Basal Metabolic Rate) - Rumus Mifflin-St Jeor
-        // Pria: (10 × weight) + (6.25 × height) - (5 × age) + 5
-        // Wanita: (10 × weight) + (6.25 × height) - (5 × age) - 161
-        
-        $weight = $user->weight_kg;
-        $height = $user->height_cm;
-        $age = $user->age;
-        
-        $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
-        
-        if ($user->gender === 'male') {
-            $bmr += 5;
-        } else {
-            $bmr -= 161;
-        }
+        $logs = UserNutritionLog::where('user_id', $user->id)
+            ->whereDate('date', $targetDate)
+            ->with('food') // Load relasi detail makanannya
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        // 2. Hitung TDEE berdasarkan Activity Level
-        $activityMultipliers = [
-            'sedentary' => 1.2,
-            'light' => 1.375,
-            'moderate' => 1.55,
-            'active' => 1.725,
-            'very_active' => 1.9,
+        // Kalkulasi Total Harian
+        $dailyTotals = [
+            'calories' => 0,
+            'protein' => 0,
+            'carbs' => 0,
+            'fats' => 0,
         ];
-        
-        $tdee = $bmr * ($activityMultipliers[$user->activity_level] ?? 1.2);
 
-        // 3. Sesuaikan dengan GOAL (Bulk/Cut/Maintain)
-        $targetCalories = $tdee;
-        $phase = "MAINTENANCE PHASE";
-        
-        if ($user->goal === 'bulk') {
-            $targetCalories += 500; // Surplus
-            $phase = "BULKING PHASE";
-        } elseif ($user->goal === 'cut') {
-            $targetCalories -= 500; // Defisit
-            $phase = "CUTTING PHASE";
+        foreach ($logs as $log) {
+            $dailyTotals['calories'] += ($log->food->calories * $log->quantity);
+            $dailyTotals['protein']  += ($log->food->protein * $log->quantity);
+            $dailyTotals['carbs']    += ($log->food->carbs * $log->quantity);
+            $dailyTotals['fats']     += ($log->food->fats * $log->quantity);
         }
-
-        // 4. Hitung Macros (Sederhana)
-        // Protein: 2g per kg berat badan (cukup standar untuk gym)
-        // Lemak: 1g per kg berat badan
-        // Karbo: Sisa kalori
-        
-        $proteinGrams = $weight * 2.0; 
-        $fatGrams = $weight * 1.0;
-        
-        // 1g Protein = 4 cal, 1g Fat = 9 cal
-        $caloriesFromProtein = $proteinGrams * 4;
-        $caloriesFromFat = $fatGrams * 9;
-        
-        $remainingCalories = $targetCalories - ($caloriesFromProtein + $caloriesFromFat);
-        
-        // 1g Carbs = 4 cal
-        $carbsGrams = max(0, $remainingCalories / 4); // Pastikan tidak negatif
 
         return response()->json([
-            'goal_status' => "You're on",
-            'phase' => $phase,
-            'calories' => round($targetCalories),
-            'macros' => [
-                'protein' => round($proteinGrams),
-                'fat' => round($fatGrams),
-                'carbs' => round($carbsGrams),
-            ]
+            'status' => 'success',
+            'date' => $targetDate,
+            'daily_totals' => $dailyTotals,
+            'logs' => $logs
+        ], 200);
+    }
+
+    /**
+     * Member mencatat apa yang mereka makan
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'food_id' => 'required|exists:foods,id',
+            'date' => 'required|date',
+            'meal_type' => 'required|in:breakfast,lunch,dinner,snack',
+            'quantity' => 'required|numeric|min:0.1', // Bisa input 0.5 porsi
         ]);
+
+        $log = UserNutritionLog::create([
+            'user_id' => $request->user()->id,
+            'food_id' => $validated['food_id'],
+            'date' => $validated['date'],
+            'meal_type' => $validated['meal_type'],
+            'quantity' => $validated['quantity'],
+        ]);
+
+        return response()->json([
+            'message' => 'Nutrition log added successfully!',
+            'data' => $log->load('food')
+        ], 201);
     }
 
-    public function getMealIdeas(Request $request)
-{
-    $user = $request->user(); // Ambil user yang sedang login
-    $goal = $user->goal;      // bulk, cut, atau maintain
+    /**
+     * Menghapus log jika member salah input
+     */
+    public function destroy(Request $request, $id)
+    {
+        $log = UserNutritionLog::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
 
-    // Base query
-    $query = \App\Models\Food::query();
+        if (!$log) {
+            return response()->json(['message' => 'Log not found or unauthorized.'], 404);
+        }
 
-    // Logika Pemilihan Makanan Berdasarkan Goal
-    switch ($goal) {
-        case 'bulk':
-            // BULKING: Cari makanan yang tinggi kalori & karbo untuk surplus energi
-            // Urutkan dari kalori terbesar ke terkecil
-            $query->orderBy('calories', 'desc');
-            break;
+        $log->delete();
 
-        case 'cut':
-            // CUTTING: Cari makanan yang mengenyangkan tapi rendah kalori (High Protein, Low Cal)
-            // Urutkan dari kalori terkecil ke terbesar
-            // Opsional: Bisa tambahkan where('calories', '<', 500)
-            $query->orderBy('calories', 'asc')
-                  ->orderBy('protein_g', 'desc'); 
-            break;
-
-        case 'maintain':
-        default:
-            // MAINTAIN: Campuran seimbang
-            // Kita acak agar tidak bosan
-            $query->inRandomOrder();
-            break;
+        return response()->json(['message' => 'Log deleted successfully.'], 200);
     }
-
-    // Ambil misal 6 rekomendasi teratas agar tidak terlalu banyak
-    $meals = $query->limit(6)->get();
-
-    return response()->json($meals);
-}
 }

@@ -41,6 +41,16 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // 🚀 Rute Baru untuk Profil RPG
         Route::get('/member/profile', [\App\Http\Controllers\API\ProfileController::class, 'show']);
+
+        // 🚀 Rute Baru untuk Quests
+        Route::get('/member/quests', [\App\Http\Controllers\API\QuestController::class, 'index']);
+        Route::post('/member/quests/{id}/claim', [\App\Http\Controllers\API\QuestController::class, 'claim']);
+
+        // 🚀 Rute Baru untuk Nutrisi
+        Route::get('/member/foods', [\App\Http\Controllers\API\NutritionController::class, 'getFoods']);
+        Route::get('/member/nutrition', [\App\Http\Controllers\API\NutritionController::class, 'index']);
+        Route::post('/member/nutrition', [\App\Http\Controllers\API\NutritionController::class, 'store']);
+        Route::delete('/member/nutrition/{id}', [\App\Http\Controllers\API\NutritionController::class, 'destroy']);
         
     });
 

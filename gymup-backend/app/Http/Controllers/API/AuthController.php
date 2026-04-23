@@ -1,122 +1,87 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // 1. REGISTER USER BARU
+    /**
+     * Register Member (B2C)
+     * Mengapa ini penting? Karena member harus terikat pada satu Gym (Multi-tenancy).
+     */
     public function register(Request $request)
     {
-        // 1. Validasi input diperlengkap
-        $validatedData = $request->validate([
-            'username' => 'required|string|max:100',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-            
-            // Tambahan Data Fisik (Wajib diisi saat register)
-            'goal' => 'required|in:bulk,cut,maintain',
-            'gender' => 'required|in:male,female',
-            'age' => 'required|integer|min:10|max:100',
-            'height_cm' => 'required|integer|min:100|max:250',
-            'weight_kg' => 'required|numeric|min:30|max:300',
-            'activity_level' => 'required|in:sedentary,light,moderate,active,very_active',
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'gym_id'   => 'required|exists:gyms,id', // Harus memilih gym yang valid
         ]);
 
-        // 2. Simpan User dengan data lengkap
         $user = User::create([
-            'username' => $validatedData['username'],
-            'email' => $validatedData['email'],
-            'password' => $validatedData['password'], // Biarkan Model yang bekerja,
-            
-            // Masukkan data fisik ke kolom tabel users
-            'goal' => $validatedData['goal'],
-            'gender' => $validatedData['gender'],
-            'age' => $validatedData['age'],
-            'height_cm' => $validatedData['height_cm'],
-            'weight_kg' => $validatedData['weight_kg'],
-            'activity_level' => $validatedData['activity_level'],
-            
-            // Default nilai awal gamifikasi
-            'level' => 1,
-            'xp' => 0,
-            'rank_points' => 0,
-            'current_streak' => 0,
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'gym_id'   => $request->gym_id,
+            'role'     => 'member', // Default pendaftaran lewat API adalah member
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Berikan token dengan ability 'role:member'
+        $token = $user->createToken('auth_token', ['role:member'])->plainTextToken;
 
         return response()->json([
-            'message' => 'Registration successful',
-            'user' => $user,
             'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token_type'   => 'Bearer',
+            'user'         => $user
         ], 201);
     }
 
-    // 2. LOGIN USER
+    /**
+     * Login Universal
+     * Mengapa pakai 'abilities'? Agar satu token punya label role yang tidak bisa dipalsukan.
+     */
     public function login(Request $request)
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => 'Invalid login details'
-            ], 401);
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        // Pengecekan password aman (anti-SQL Injection karena Eloquent)
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['Kredensial yang diberikan salah.'],
+            ]);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
-
-        // Buat Token Baru
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Generate token dengan label role (misal: 'role:gym_owner')
+        $token = $user->createToken('auth_token', ["role:{$user->role}"])->plainTextToken;
 
         return response()->json([
-            'message' => 'Login successful',
-            'user' => $user,
             'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token_type'   => 'Bearer',
+            'role'         => $user->role,
+            'user'         => $user->load('gym') // Muat data gym untuk branding di frontend
         ]);
     }
 
-    // 3. LOGOUT (Hapus Token)
     public function logout(Request $request)
     {
-        // Hapus token yang sedang dipakai saja
+        // Hapus token yang sedang digunakan saat ini saja
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully']);
+        return response()->json(['message' => 'Logged out']);
     }
 
-    // 4. CEK USER PROFILE (Siapa saya?)
-    public function user(Request $request)
+    public function me(Request $request)
     {
-        return response()->json($request->user());
-    }
-
-    // 5. UPDATE PROFILE (Body Stats & Goal)
-    public function updateProfile(Request $request)
-    {
-        $user = $request->user();
-
-        // Gunakan 'sometimes' agar user bisa update sebagian data saja
-        $validatedData = $request->validate([
-            'age' => 'sometimes|integer|min:10|max:100',
-            'gender' => 'sometimes|in:male,female',
-            'height_cm' => 'sometimes|integer|min:100|max:250',
-            'weight_kg' => 'sometimes|numeric|min:30|max:300',
-            'activity_level' => 'sometimes|in:sedentary,light,moderate,active,very_active',
-            'goal' => 'sometimes|in:bulk,cut,maintain',
-        ]);
-
-        // Update data user di database
-        $user->update($validatedData);
-
-        return response()->json([
-            'message' => 'Profile updated successfully',
-            'user' => $user, // Kembalikan data terbaru agar frontend bisa sinkron
-        ]);
+        return response()->json($request->user()->load('gym'));
     }
 }

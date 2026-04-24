@@ -89,6 +89,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin/master/foods', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'storeFood']);
         Route::put('/admin/master/foods/{id}', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'updateFood']);
         Route::delete('/admin/master/foods/{id}', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'destroyFood']);
+
+        Route::put('/admin/gyms/{id}', [\App\Http\Controllers\API\Admin\GymController::class, 'update']);
+        Route::delete('/admin/gyms/{id}', [\App\Http\Controllers\API\Admin\GymController::class, 'destroy']);
         
     });
 });

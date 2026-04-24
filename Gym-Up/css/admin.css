@@ -1,0 +1,291 @@
+/* css/admin.css */
+
+:root {
+    --bg-dark: #121212;          /* Warna background paling gelap */
+    --card-bg: #1e1e1e;          /* Warna background untuk Card/Form */
+    --accent-gold: #FFB800;      /* EMAS GYM-UP (Sesuai Screenshot) */
+    --text-main: #ffffff;        /* Teks Utama Putih */
+    --text-muted: #a0a0a0;       /* Teks Abu-abu */
+    --border-color: #333333;     /* Garis batas gelap */
+    --warning-red: #ff4757;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Poppins', sans-serif; /* Sesuai font di screenshot */
+    margin: 0;
+}
+
+/* Header Styling */
+.admin-header {
+    background-color: #0d0d0d;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--accent-gold);
+    letter-spacing: 1px;
+}
+
+/* Container */
+.admin-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Card Styling (Sesuai dengan kotak Login di screenshot) */
+.admin-card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    border: 1px solid #2a2a2a;
+}
+
+.admin-card h3 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: var(--accent-gold);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+/* Form Styling (Sesuai input field di screenshot Login) */
+.admin-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.admin-form input, .admin-form select {
+    background: #252525;
+    border: 1px solid #3a3a3a;
+    padding: 14px;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.95rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.admin-form input::placeholder {
+    color: #777;
+}
+
+.admin-form input:focus {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 5px rgba(255, 184, 0, 0.3);
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+/* Button Styling (Persis seperti tombol Log In & Log New Workout) */
+.admin-btn {
+    background-color: var(--accent-gold);
+    color: #111111; /* Teks hitam agar kontras dengan emas */
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.admin-btn:hover {
+    background-color: #e6a600;
+}
+
+.admin-btn:active {
+    transform: scale(0.98);
+}
+
+.admin-btn:disabled {
+    background-color: #555;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* Table Styling */
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th {
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 12px;
+    border-bottom: 2px solid #333;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #2a2a2a;
+    font-size: 0.95rem;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.active-status { 
+    background: rgba(255, 184, 0, 0.15); 
+    color: var(--accent-gold); 
+    border: 1px solid rgba(255, 184, 0, 0.3);
+}
+
+/* Action Buttons di dalam Tabel */
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-right: 5px;
+    transition: 0.2s;
+    text-transform: uppercase;
+}
+
+.edit-btn { 
+    background: transparent; 
+    color: var(--accent-gold); 
+    border: 1px solid var(--accent-gold); 
+}
+
+.edit-btn:hover { 
+    background: var(--accent-gold); 
+    color: #111; 
+}
+
+.delete-btn { 
+    background: transparent; 
+    color: #ff4757; 
+    border: 1px solid #ff4757; 
+}
+
+.delete-btn:hover { 
+    background: #ff4757; 
+    color: #fff; 
+}
+
+/* --- CUSTOM MODAL SYSTEM --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: none; /* Sembunyikan default */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #1e1e1e;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 15px;
+    border: 1px solid #333;
+    padding: 2rem;
+    position: relative;
+    animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--accent-gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.modal-footer {
+    margin-top: 2rem;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Modal Alert Style (Seperti Screenshot 2) */
+.modal-alert {
+    text-align: center;
+}
+
+.modal-icon {
+    font-size: 3rem;
+    color: var(--accent-gold);
+    margin-bottom: 1rem;
+}
+/* Modifikasi Modal untuk Konfirmasi Hapus */
+.modal-icon.warning {
+    color: var(--warning-red);
+    font-size: 4rem;
+    margin-bottom: 0.5rem;
+}
+
+.delete-confirm-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+}
+
+/* Tombol Khusus Hapus di dalam Modal */
+.btn-danger-modal {
+    background-color: var(--warning-red);
+    color: white;
+}
+
+.btn-danger-modal:hover {
+    background-color: #e04050;
+    transform: translateY(-2px);
+}
+
+#custom-alert-title {
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    color: var(--accent-gold);
+}
+
+#custom-alert-message {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #dfdfdf;
+}

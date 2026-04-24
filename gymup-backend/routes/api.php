@@ -26,10 +26,14 @@ Route::middleware('auth:sanctum')->group(function () {
    // --- GRUP KHUSUS GYM OWNER (B2B) ---
     Route::middleware('role:gym_owner')->group(function () {
         
-        // Manajemen Inventory & Custom Exercises
+        // Manajemen Inventory & Custom Exercises (yang sudah kita buat)
         Route::get('/owner/exercises', [\App\Http\Controllers\API\Owner\ExerciseController::class, 'index']);
         Route::post('/owner/exercises/toggle', [\App\Http\Controllers\API\Owner\ExerciseController::class, 'toggleInventory']);
         Route::post('/owner/exercises', [\App\Http\Controllers\API\Owner\ExerciseController::class, 'store']);
+        
+        // 🚀 Rute Baru: Kasir & Keuangan
+        Route::get('/owner/transactions', [\App\Http\Controllers\API\Owner\TransactionController::class, 'index']);
+        Route::post('/owner/transactions', [\App\Http\Controllers\API\Owner\TransactionController::class, 'store']);
         
     });
 

@@ -73,6 +73,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- GRUP KHUSUS SUPER ADMIN ---
     Route::middleware('role:super_admin')->group(function () {
-        // ...
+        
+        // B2B Onboarding (Daftarin Gym Baru)
+        Route::get('/admin/gyms', [\App\Http\Controllers\API\Admin\GymController::class, 'index']);
+        Route::post('/admin/gyms', [\App\Http\Controllers\API\Admin\GymController::class, 'store']);
+        
     });
 });

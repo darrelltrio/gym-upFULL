@@ -78,5 +78,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/gyms', [\App\Http\Controllers\API\Admin\GymController::class, 'index']);
         Route::post('/admin/gyms', [\App\Http\Controllers\API\Admin\GymController::class, 'store']);
         
+        // 🚀 Rute Baru: Master Data Exercises (Global)
+        Route::get('/admin/master/exercises', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'getExercises']);
+        Route::post('/admin/master/exercises', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'storeExercise']);
+        Route::put('/admin/master/exercises/{id}', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'updateExercise']);
+        Route::delete('/admin/master/exercises/{id}', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'destroyExercise']);
+
+        // 🚀 Rute Baru: Master Data Foods
+        Route::get('/admin/master/foods', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'getFoods']);
+        Route::post('/admin/master/foods', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'storeFood']);
+        Route::put('/admin/master/foods/{id}', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'updateFood']);
+        Route::delete('/admin/master/foods/{id}', [\App\Http\Controllers\API\Admin\MasterDataController::class, 'destroyFood']);
+        
     });
 });

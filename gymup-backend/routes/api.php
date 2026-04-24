@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
    // --- GRUP KHUSUS GYM OWNER (B2B) ---
     Route::middleware('role:gym_owner')->group(function () {
-        
+
         // 🚀 Rute Baru: Dashboard Utama
         Route::get('/owner/dashboard', [\App\Http\Controllers\API\Owner\DashboardController::class, 'index']);
         
@@ -37,6 +37,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // 🚀 Rute Baru: Kasir & Keuangan
         Route::get('/owner/transactions', [\App\Http\Controllers\API\Owner\TransactionController::class, 'index']);
         Route::post('/owner/transactions', [\App\Http\Controllers\API\Owner\TransactionController::class, 'store']);
+
+        // 🚀 Rute Baru: Manajemen Member
+        Route::get('/owner/members', [\App\Http\Controllers\API\Owner\MemberController::class, 'index']);
+        Route::post('/owner/members', [\App\Http\Controllers\API\Owner\MemberController::class, 'store']);
+        Route::get('/owner/members/{id}', [\App\Http\Controllers\API\Owner\MemberController::class, 'show']);
         
     });
 

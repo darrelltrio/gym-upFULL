@@ -23,9 +23,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // --- GRUP KHUSUS GYM OWNER (B2B) ---
+   // --- GRUP KHUSUS GYM OWNER (B2B) ---
     Route::middleware('role:gym_owner')->group(function () {
-        // Contoh: Route::get('/owner/stats', [GymOwnerController::class, 'stats']);
+        
+        // Manajemen Inventory & Custom Exercises
+        Route::get('/owner/exercises', [\App\Http\Controllers\API\Owner\ExerciseController::class, 'index']);
+        Route::post('/owner/exercises/toggle', [\App\Http\Controllers\API\Owner\ExerciseController::class, 'toggleInventory']);
+        Route::post('/owner/exercises', [\App\Http\Controllers\API\Owner\ExerciseController::class, 'store']);
+        
     });
 
     // --- GRUP KHUSUS MEMBER (B2C) ---

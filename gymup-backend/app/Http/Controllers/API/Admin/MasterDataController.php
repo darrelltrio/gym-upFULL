@@ -85,6 +85,16 @@ class MasterDataController extends Controller
             'serving_size' => 'required|string|max:100', // Contoh: "100 gram", "1 Piring"
         ]);
 
+        // Mapping manual agar 'fats' masuk ke kolom 'fat'
+        $food = Food::create([
+            'name' => $validated['name'],
+            'calories' => $validated['calories'],
+            'protein' => $validated['protein'],
+            'carbs' => $validated['carbs'],
+            'fat' => $validated['fats'], // <--- INI KUNCI PERBAIKANNYA
+            'serving_size' => $validated['serving_size'],
+        ]);
+
         $food = Food::create($validated);
 
         return response()->json(['message' => 'Food added to database!', 'data' => $food], 201);
@@ -102,6 +112,17 @@ class MasterDataController extends Controller
             'fats' => 'sometimes|required|numeric|min:0',
             'serving_size' => 'sometimes|required|string|max:100',
         ]);
+
+        $food->update([
+            'name' => $validated['name'] ?? $food->name,
+            'calories' => $validated['calories'] ?? $food->calories,
+            'protein' => $validated['protein'] ?? $food->protein,
+            'carbs' => $validated['carbs'] ?? $food->carbs,
+            'fat' => $validated['fats'] ?? $food->fat,
+            'serving_size' => $validated['serving_size'] ?? $food->serving_size,
+        ]);
+
+        
 
         $food->update($validated);
 

@@ -1,17 +1,17 @@
-// Variable Global untuk menangani penghapusan dinamis (Gym, Exercise, atau Food)
-let itemToDelete = { id: null, type: null }; 
-
 document.addEventListener('DOMContentLoaded', () => {
     // Tampilkan nama admin dari LocalStorage
-    document.getElementById('admin-name').textContent = "Halo, " + localStorage.getItem('user_name');
+    const adminNameEl = document.getElementById('admin-name');
+    if (adminNameEl) {
+        adminNameEl.textContent = "Halo, " + localStorage.getItem('user_name');
+    }
 
     // Load semua data tabel saat halaman pertama dibuka
     fetchGyms();
     fetchExercises();
-    fetchFoods();
+    fetchFoods(); // Panggilan baru untuk load makanan
 
     // ==========================================
-    // 1. LOGIKA PENDAFTARAN GYM BARU
+    // 1. EVENT LISTENER: PENDAFTARAN GYM BARU
     // ==========================================
     const addGymForm = document.getElementById('add-gym-form');
     if (addGymForm) {
@@ -45,14 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    addGymForm.reset(); 
-                    fetchGyms(); 
-                    showCustomAlert("PENDAFTARAN BERHASIL", `Gym "${payload.gym_name}" telah aktif. Akun Owner siap digunakan.`);
+                    addGymForm.reset(); // Kosongkan form
+                    fetchGyms(); // Refresh tabel gym
+                    showCustomAlert("PENDAFTARAN BERHASIL", `Gym "${payload.gym_name}" telah aktif. Akun Owner siap digunakan.`, false);
                 } else {
                     showCustomAlert("GAGAL", data.message || "Gagal mendaftarkan Gym.", true);
                 }
             } catch (error) {
-                showCustomAlert("ERROR", "Gagal terhubung ke server.", true);
+                showCustomAlert("ERROR", "Gagal terhubung ke server. Pastikan Backend menyala.", true);
             } finally {
                 btn.textContent = "DAFTARKAN GYM";
                 btn.disabled = false;
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 2. LOGIKA KATALOG LATIHAN (EXERCISES)
+    // 2. EVENT LISTENER: TAMBAH MASTER EXERCISE
     // ==========================================
     const addExerciseForm = document.getElementById('add-exercise-form');
     if (addExerciseForm) {
@@ -83,14 +83,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch(`${API_BASE_URL}/admin/master/exercises`, {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(payload)
                 });
 
                 if (response.ok) {
                     addExerciseForm.reset();
-                    fetchExercises();
+                    fetchExercises(); // Refresh tabel exercises
                     showCustomAlert("BERHASIL", `Gerakan "${payload.name}" telah masuk ke katalog global.`);
                 } else {
                     showCustomAlert("GAGAL", "Gagal menambahkan latihan.", true);
@@ -105,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 3. LOGIKA DATABASE NUTRISI (FOODS)
+    // 3. EVENT LISTENER: TAMBAH MASTER FOOD
     // ==========================================
     const addFoodForm = document.getElementById('add-food-form');
     if (addFoodForm) {
@@ -129,17 +131,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch(`${API_BASE_URL}/admin/master/foods`, {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(payload)
                 });
 
+                // 1. TANGKAP PESAN DARI LARAVEL
+                const data = await response.json(); 
+
                 if (response.ok) {
                     addFoodForm.reset();
-                    fetchFoods();
+                    fetchFoods(); 
                     showCustomAlert("BERHASIL", `"${payload.name}" telah ditambahkan ke database nutrisi.`);
                 } else {
-                    showCustomAlert("GAGAL", "Gagal menambahkan data makanan.", true);
+                    // 2. TAMPILKAN ERROR ASLI KE MODAL KITA
+                    let errorMsg = data.message || "Gagal menambahkan data makanan.";
+                    if (data.errors) {
+                        // Jika ada error validasi (misal: "calories must be a number")
+                        errorMsg = Object.values(data.errors).flat().join('\n');
+                    }
+                    showCustomAlert("GAGAL DARI SERVER", errorMsg, true);
+                    console.log("Error Detail:", data); // Munculkan di F12 Console juga
                 }
             } catch (error) {
                 showCustomAlert("ERROR", "Kesalahan koneksi server.", true);
@@ -151,21 +165,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-
 // ==========================================
-// FUNGSI RENDER TABEL (GET DATA)
+// FUNGSI RENDER TABEL (GET) & DELETE UNTUK GYM
 // ==========================================
-
 async function fetchGyms() {
     const tbody = document.getElementById('gym-list-body');
     const token = localStorage.getItem('auth_token');
+
     try {
         const response = await fetch(`${API_BASE_URL}/admin/gyms`, {
+            method: 'GET',
             headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
         });
         const res = await response.json();
+
         if (response.ok) {
-            tbody.innerHTML = '';
+            tbody.innerHTML = ''; 
             if (res.data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Belum ada Gym yang terdaftar.</td></tr>';
                 return;
@@ -182,8 +197,8 @@ async function fetchGyms() {
                         <td><span class="status-badge ${gym.status === 'active' ? 'active-status' : ''}">${gym.status}</span></td>
                         <td style="color: #ccc;">${new Date(gym.subscription_ends_at).toLocaleDateString('id-ID')}</td>
                         <td>
-                            <button class="action-btn edit-btn" onclick="editGym(${gym.id})">Edit</button>
-                            <button class="action-btn delete-btn" onclick="triggerDelete(${gym.id}, 'gym')">Hapus</button>
+                            <button class="action-btn edit-btn" onclick="editGym(${gym.id}, '${gym.name}')">Edit</button>
+                            <button class="action-btn delete-btn" onclick="deleteGym(${gym.id})">Hapus</button>
                         </td>
                     </tr>
                 `;
@@ -191,103 +206,17 @@ async function fetchGyms() {
             });
         }
     } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Gagal memuat data.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Gagal memuat data dari server.</td></tr>';
     }
 }
 
-async function fetchExercises() {
-    const tbody = document.getElementById('exercise-list-body');
-    const token = localStorage.getItem('auth_token');
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/master/exercises`, {
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
-        });
-        const res = await response.json();
-        if (response.ok) {
-            tbody.innerHTML = '';
-            if (res.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #777;">Kamus latihan masih kosong.</td></tr>';
-                return;
-            }
-            res.data.forEach(ex => {
-                const row = `
-                    <tr>
-                        <td style="font-weight: 600; color: white;">${ex.name}</td>
-                        <td style="text-transform: capitalize; color: #aaa;">${ex.target_muscle.replace('_', ' ')}</td>
-                        <td><span class="status-badge" style="background: #333; color: var(--accent-gold);">${ex.type.toUpperCase()}</span></td>
-                        <td style="color: #2ecc71; font-weight: bold;">+${ex.base_xp} XP</td>
-                        <td><button class="action-btn delete-btn" onclick="triggerDelete(${ex.id}, 'exercise')">Hapus</button></td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        }
-    } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Gagal memuat data.</td></tr>';
-    }
-}
-
-async function fetchFoods() {
-    const tbody = document.getElementById('food-list-body');
-    const token = localStorage.getItem('auth_token');
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/master/foods`, {
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
-        });
-        const res = await response.json();
-        if (response.ok) {
-            tbody.innerHTML = '';
-            if (res.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #777;">Database nutrisi masih kosong.</td></tr>';
-                return;
-            }
-            res.data.forEach(food => {
-                const row = `
-                    <tr>
-                        <td style="font-weight: 600;">${food.name}</td>
-                        <td style="color: var(--accent-gold);">${food.calories} kcal</td>
-                        <td style="font-size: 0.85rem; color: #aaa;">
-                            <span style="color: #2ecc71;">P: ${food.protein}g</span> | 
-                            <span style="color: #3498db;">C: ${food.carbs}g</span> | 
-                            <span style="color: #e67e22;">L: ${food.fats}g</span>
-                        </td>
-                        <td>${food.serving_size}</td>
-                        <td><button class="action-btn delete-btn" onclick="triggerDelete(${food.id}, 'food')">Hapus</button></td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        }
-    } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Gagal memuat data.</td></tr>';
-    }
-}
-
-
-// ==========================================
-// SISTEM MODAL & ALERT GLOBAL
-// ==========================================
-
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-function showCustomAlert(title, message, isError = false) {
-    document.getElementById('custom-alert-title').textContent = title;
-    document.getElementById('custom-alert-message').textContent = message;
-    const icon = document.getElementById('alert-icon');
-    icon.textContent = isError ? '✖' : '✔';
-    icon.style.color = isError ? '#ff4757' : '#FFB800';
-    icon.style.textShadow = isError ? '0 0 15px rgba(255, 71, 87, 0.4)' : '0 0 15px rgba(255, 184, 0, 0.4)';
-    openModal('alertModal');
-}
-
-// ==========================================
-// SISTEM EDIT GYM
-// ==========================================
+// Fitur Edit Gym (Modal)
 async function editGym(gymId) {
     const token = localStorage.getItem('auth_token');
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/gyms`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_BASE_URL}/admin/gyms`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         const res = await response.json();
         const gym = res.data.find(g => g.id === gymId);
         
@@ -299,100 +228,212 @@ async function editGym(gymId) {
         
         openModal('editModal');
     } catch (e) {
-        showCustomAlert("ERROR", "Gagal mengambil data terbaru.", true);
+        showCustomAlert("Error", "Gagal mengambil data terbaru.", true);
     }
 }
 
-document.getElementById('edit-gym-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('edit_gym_id').value;
+// Fitur Delete Gym (Confirm Browser)
+async function deleteGym(gymId) {
+    if (!confirm("HATI-HATI! Yakin ingin menghapus Gym ini secara permanen?")) return;
+
     const token = localStorage.getItem('auth_token');
-    
-    const payload = {
-        name: document.getElementById('edit_gym_name').value,
-        address: document.getElementById('edit_address').value,
-        owner_name: document.getElementById('edit_owner_name').value,
-        email: document.getElementById('edit_owner_email').value,
-        password: document.getElementById('edit_owner_password').value || null
-    };
-
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/gyms/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-            closeModal('editModal');
-            showCustomAlert("SUKSES", "Data Gym dan Owner telah diperbarui.");
-            fetchGyms();
-        } else {
-            showCustomAlert("GAGAL", "Periksa kembali input Anda.", true);
-        }
-    } catch (err) {
-        showCustomAlert("ERROR", "Kesalahan koneksi server.", true);
-    }
-});
-
-// ==========================================
-// SISTEM PENGHAPUSAN (DELETE) DINAMIS
-// ==========================================
-
-function triggerDelete(id, type) {
-    itemToDelete = { id: id, type: type };
-    
-    const msgMap = {
-        'gym': 'Semua data member dan transaksi di gym ini akan ikut terhapus permanen.',
-        'exercise': 'Gerakan ini akan hilang dari katalog global dan inventaris semua gym.',
-        'food': 'Data nutrisi ini akan dihapus dari database global.'
-    };
-    
-    const textEl = document.querySelector('.delete-confirm-text');
-    if(textEl) textEl.textContent = msgMap[type] || 'Tindakan ini permanen.';
-    
-    openModal('deleteConfirmModal');
-}
-
-// Eksekusi ketika tombol konfirmasi di modal ditekan
-document.getElementById('final-delete-btn').addEventListener('click', async () => {
-    const { id, type } = itemToDelete;
-    if (!id) return;
-
-    const btn = document.getElementById('final-delete-btn');
-    const token = localStorage.getItem('auth_token');
-    
-    btn.textContent = "MENGHAPUS...";
-    btn.disabled = true;
-
-    // Tentukan URL API berdasarkan tipe item yang dihapus
-    let url = '';
-    if (type === 'gym') url = `${API_BASE_URL}/admin/gyms/${id}`;
-    else if (type === 'exercise') url = `${API_BASE_URL}/admin/master/exercises/${id}`;
-    else if (type === 'food') url = `${API_BASE_URL}/admin/master/foods/${id}`;
-
-    try {
-        const response = await fetch(url, {
+        const response = await fetch(`${API_BASE_URL}/admin/gyms/${gymId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
         });
 
         if (response.ok) {
-            closeModal('deleteConfirmModal');
-            showCustomAlert("TERHAPUS", "Data telah berhasil dihilangkan dari sistem.");
-            
-            // Refresh tabel yang sesuai dengan tipe
-            if (type === 'gym') fetchGyms();
-            else if (type === 'exercise') fetchExercises();
-            else if (type === 'food') fetchFoods();
-        } else {
-            showCustomAlert("GAGAL", "Gagal menghapus data. Coba lagi nanti.", true);
+            fetchGyms();
+            showCustomAlert("BERHASIL", "Gym telah dihapus.");
         }
     } catch (error) {
-        showCustomAlert("ERROR", "Kesalahan koneksi server.", true);
-    } finally {
-        btn.textContent = "YA, HAPUS PERMANEN";
-        btn.disabled = false;
-        itemToDelete = { id: null, type: null }; // Reset
+        console.error(error);
     }
-});
+}
+
+// Submit Form Edit Gym
+const editGymForm = document.getElementById('edit-gym-form');
+if (editGymForm) {
+    editGymForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit_gym_id').value;
+        const token = localStorage.getItem('auth_token');
+        
+        const payload = {
+            name: document.getElementById('edit_gym_name').value,
+            address: document.getElementById('edit_address').value,
+            owner_name: document.getElementById('edit_owner_name').value,
+            email: document.getElementById('edit_owner_email').value,
+            password: document.getElementById('edit_owner_password').value || null
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/gyms/${id}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                closeModal('editModal');
+                showCustomAlert("SUKSES", "Data Gym telah diperbarui.");
+                fetchGyms();
+            } else {
+                showCustomAlert("GAGAL", "Periksa kembali input Anda.", true);
+            }
+        } catch (err) {
+            showCustomAlert("ERROR", "Kesalahan koneksi server.", true);
+        }
+    });
+}
+
+// ==========================================
+// FUNGSI RENDER TABEL (GET) & DELETE UNTUK EXERCISES
+// ==========================================
+async function fetchExercises() {
+    const tbody = document.getElementById('exercise-list-body');
+    const token = localStorage.getItem('auth_token');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/master/exercises`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        const res = await response.json();
+
+        if (response.ok) {
+            tbody.innerHTML = '';
+            if (res.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #777;">Kamus latihan masih kosong.</td></tr>';
+                return;
+            }
+
+            res.data.forEach(ex => {
+                const row = `
+                    <tr>
+                        <td style="font-weight: 600; color: white;">${ex.name}</td>
+                        <td style="text-transform: capitalize; color: #aaa;">${ex.target_muscle.replace('_', ' ')}</td>
+                        <td><span class="status-badge" style="background: #333; color: var(--accent-gold);">${ex.type.toUpperCase()}</span></td>
+                        <td style="color: #2ecc71; font-weight: bold;">+${ex.base_xp} XP</td>
+                        <td>
+                            <button class="action-btn delete-btn" onclick="deleteExercise(${ex.id})">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Gagal memuat data.</td></tr>';
+    }
+}
+
+async function deleteExercise(id) {
+    if (!confirm("Hapus latihan ini dari Katalog Global?")) return;
+
+    const token = localStorage.getItem('auth_token');
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/master/exercises/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+
+        if (response.ok) {
+            fetchExercises();
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// ==========================================
+// FUNGSI RENDER TABEL (GET) & DELETE UNTUK FOODS
+// ==========================================
+
+//FOODS BERMASALAH DENGAN DATABASE, ENTAH KENAPA GAADA TABEL NYA
+async function fetchFoods() {
+    const tbody = document.getElementById('food-list-body');
+    const token = localStorage.getItem('auth_token');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/master/foods`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        const res = await response.json();
+
+        if (response.ok) {
+            tbody.innerHTML = '';
+            if (res.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #777;">Database nutrisi masih kosong.</td></tr>';
+                return;
+            }
+
+            res.data.forEach(food => {
+                const row = `
+                    <tr>
+                        <td style="font-weight: 600;">${food.name}</td>
+                        <td style="color: var(--accent-gold);">${food.calories} kcal</td>
+                        <td style="font-size: 0.85rem; color: #aaa;">
+                            <span style="color: #2ecc71;">P: ${food.protein}g</span> | 
+                            <span style="color: #3498db;">C: ${food.carbs}g</span> | 
+                            <span style="color: #e67e22;">L: ${food.fats}g</span>
+                        </td>
+                        <td>${food.serving_size}</td>
+                        <td>
+                            <button class="action-btn delete-btn" onclick="deleteFood(${food.id})">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Gagal memuat data.</td></tr>';
+    }
+}
+
+async function deleteFood(id) {
+    if (!confirm("Hapus makanan ini dari Database Global?")) return;
+
+    const token = localStorage.getItem('auth_token');
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/master/foods/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+
+        if (response.ok) {
+            fetchFoods();
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// ==========================================
+// SISTEM MODAL & ALERT GLOBAL
+// ==========================================
+function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+}
+
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+function showCustomAlert(title, message, isError = false) {
+    document.getElementById('custom-alert-title').textContent = title;
+    document.getElementById('custom-alert-message').textContent = message;
+    
+    const alertIcon = document.getElementById('alert-icon');
+    if (alertIcon) {
+        alertIcon.textContent = isError ? '✖' : '✔';
+        alertIcon.style.color = isError ? '#ff4757' : '#FFB800';
+    }
+    
+    openModal('alertModal');
+}

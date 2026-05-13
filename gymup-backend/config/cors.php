@@ -12,7 +12,7 @@ return [
     // Mengizinkan permintaan dari alamat front-end Live Server Anda
     'allowed_origins' => [
         'http://127.0.0.1:5500', // Alamat front-end Live Server Anda
-        'http://localhost:57482'  // Opsi fallback
+        'http://localhost:57032'  // Opsi fallback
     ],
 
     // Memungkinkan semua header dan method (cara paling sederhana)

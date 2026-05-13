@@ -61,6 +61,82 @@
                 </table>
             </div>
         </section>
+        <section class="admin-card">
+            <h3>🏋️‍♂️ KATALOG LATIHAN GLOBAL</h3>
+            <form id="add-exercise-form" class="admin-form">
+                <input type="text" id="ex_name" placeholder="Nama Gerakan (Misal: Bench Press)" required>
+                
+                <select id="ex_muscle" required>
+                    <option value="" disabled selected>Target Otot</option>
+                    <option value="chest">Chest</option>
+                    <option value="back">Back</option>
+                    <option value="legs">Legs</option>
+                    <option value="shoulders">Shoulders</option>
+                    <option value="arms">Arms</option>
+                    <option value="core">Core</option>
+                    <option value="full_body">Full Body</option>
+                </select>
+
+                <select id="ex_type" required>
+                    <option value="" disabled selected>Tipe Latihan</option>
+                    <option value="compound">Compound</option>
+                    <option value="isolation">Isolation</option>
+                    <option value="cardio">Cardio</option>
+                </select>
+
+                <input type="number" id="ex_xp" placeholder="Base XP (Misal: 50)" required min="5">
+                
+                <button type="submit" id="submit-ex-btn" class="admin-btn full-width" style="margin-top: 10px;">TAMBAH KE KATALOG</button>
+            </form>
+
+            <div class="table-responsive" style="margin-top: 20px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NAMA GERAKAN</th>
+                            <th>TARGET OTOT</th>
+                            <th>TIPE</th>
+                            <th>BASE XP</th>
+                            <th>AKSI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exercise-list-body">
+                        <tr><td colspan="5" style="text-align: center; color: #777;">Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-card">
+    <h3>🍎 DATABASE NUTRISI GLOBAL (FOODS)</h3>
+    <form id="add-food-form" class="admin-form">
+        <input type="text" id="food_name" placeholder="Nama Makanan (Misal: Nasi Putih)" required class="full-width">
+        <input type="number" id="food_calories" placeholder="Kalori (kcal)" required step="0.1">
+        <input type="number" id="food_protein" placeholder="Protein (g)" required step="0.1">
+        <input type="number" id="food_carbs" placeholder="Karbo (g)" required step="0.1">
+        <input type="number" id="food_fats" placeholder="Lemak (g)" required step="0.1">
+        <input type="text" id="food_serving" placeholder="Takaran (Misal: 100g / 1 Porsi)" required class="full-width">
+        
+        <button type="submit" id="submit-food-btn" class="admin-btn full-width" style="margin-top: 10px;">TAMBAH KE DATABASE</button>
+    </form>
+
+    <div class="table-responsive" style="margin-top: 20px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>NAMA MAKANAN</th>
+                    <th>KALORI</th>
+                    <th>P / C / L</th>
+                    <th>TAKARAN</th>
+                    <th>AKSI</th>
+                </tr>
+            </thead>
+            <tbody id="food-list-body">
+                <tr><td colspan="5" style="text-align: center; color: #777;">Loading data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
 
     </main>
 
